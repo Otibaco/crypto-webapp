@@ -21,7 +21,7 @@ const geistMono =
 export const metadata = {
   title: "CryptoWallet",
   description: "Modern cryptocurrency wallet with DeFi features",
-  generator: "v0.app",
+  
 }
 
 export default function RootLayout({
