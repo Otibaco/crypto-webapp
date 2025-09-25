@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased`} cz-shortcut-listen="true">
         <div className="min-h-screen bg-background">
           <main className="pb-20">
             <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
