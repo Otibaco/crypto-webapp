@@ -11,7 +11,7 @@ import { formatUnits } from "viem"
 
 // --- Interfaces for fetched data (for professional type safety) ---
 // TypeScript interfaces removed for JavaScript compatibility.
-
+// updating git
 // --- CONFIGURATION CONSTANTS ---
 // IMPORTANT: Replace with your actual Covalent API Key
 const COVALENT_API_KEY = process.env.NEXT_PUBLIC_COVALENT_API_KEY
