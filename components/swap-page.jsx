@@ -4,10 +4,10 @@ import { useState, useEffect } from "react"
 import { Card } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { ArrowLeft, ArrowUpDown, Settings, Info } from "lucide-react"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn } from "../lib/utils"
 
 const assets = [
   { symbol: "BTC", name: "Bitcoin", balance: "0.00234", price: 98420.5, logo: "₿", color: "text-orange-400" },
