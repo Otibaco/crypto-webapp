@@ -13,7 +13,8 @@ const queryClient = new QueryClient()
 const metadata = {
   name: 'next-reown-appkit',
   description: 'next-reown-appkit',
-  url: 'https://crypto-webapp-phi.vercel.app', // origin must match your domain & subdomain
+  //  url: 'https://crypto-webapp-phi.vercel.app', origin must match your domain & subdomain http://localhost:3000/
+  url: 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 

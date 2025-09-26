@@ -1,0 +1,27 @@
+// middleware.js
+import { NextResponse } from "next/server";
+
+// Routes that require authentication
+const protectedRoutes = ["/", "/buy", "/history", "/receive", "/send", "/dashboard"];
+
+export function middleware(req) {
+  const token = req.cookies.get("auth_token"); // check for auth cookie
+  const { pathname } = req.nextUrl;
+
+  // If user is not logged in and tries to access a protected route → redirect to login
+  if (!token && protectedRoutes.includes(pathname)) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // If user is logged in and tries to visit /login → redirect to dashboard (/)
+  if (token && pathname === "/login") {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  return NextResponse.next();
+}
+
+// Apply middleware to all routes
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
