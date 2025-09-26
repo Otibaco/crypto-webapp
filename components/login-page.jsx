@@ -1,20 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Wallet } from "lucide-react"
+import { Wallet } from "lucide-react";
+import Link from 'next/link'; // Import Link for navigation
 
-export function LoginPage() {
-  const [isConnecting, setIsConnecting] = useState(false)
+// Note: We no longer need the 'Button' component from 'shadcn/ui'
+// and the custom state for handling the connection.
 
-  const handleConnectWallet = async () => {
-    setIsConnecting(true)
-    // Simulate wallet connection
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsConnecting(false)
-    // In a real app, this would redirect to dashboard after successful connection
-    window.location.href = "/"
-  }
+// Corrected to be a default export, as required by Next.js App Router
+export default function LoginPage() {
+  // AppKit handles the connection state internally, so we remove the
+  // `isConnecting` state and the `handleConnectWallet` function.
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -31,21 +26,12 @@ export function LoginPage() {
         </div>
 
         {/* Connect Wallet Button */}
-        <div className="space-y-6">
-          <Button
-            onClick={handleConnectWallet}
-            disabled={isConnecting}
-            className="w-full h-14 text-lg font-semibold gradient-purple-blue glow-purple hover:scale-105 active:scale-95 transition-all duration-200 md:h-16 md:text-xl"
-          >
-            {isConnecting ? (
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Connecting...
-              </div>
-            ) : (
-              "Connect Wallet"
-            )}
-          </Button>
+        <div className="space-y-6 ">
+          {/* Centered Connect Wallet Button */}
+          <div className="flex justify-center">
+            <appkit-button />
+          </div>
+
 
           {/* Additional Info */}
           <div className="text-center space-y-3">

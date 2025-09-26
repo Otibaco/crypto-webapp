@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card } from "../components/ui/card"
+import { Button } from "../components/ui/button"
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowUpDown, ExternalLink, Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Input } from "../components/ui/input"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { cn } from "../lib/utils"
 
 // type TransactionType = "sent" | "received" | "swap"
 
