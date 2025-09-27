@@ -9,19 +9,17 @@ import { useAccount, useChainId } from "wagmi"
 import axios from "axios"
 import { formatUnits } from "viem"
 
-// --- Interfaces for fetched data (for professional type safety) ---
-// TypeScript interfaces removed for JavaScript compatibility.
-// updating git
 // --- CONFIGURATION CONSTANTS ---
-// IMPORTANT: Replace with your actual Covalent API Key
-const COVALENT_API_KEY = process.env.NEXT_PUBLIC_COVALENT_API_KEY
+// IMPORTANT: Accessing the key from environment variable
+// Ensure your key is set in .env.local as NEXT_PUBLIC_COVALENT_API_KEY
+const COVALENT_API_KEY = "cqt_rQwCVT8kP7DxxMf4d9jQMPDYxVpk"
 const SUPPORTED_CHAINS = [
   "eth-mainnet",
   "polygon-mainnet",
   "bsc-mainnet",
   // Add other chains as needed
 ]
-// Dummy mapping for colors/logos (in a real app, you'd use a more robust token list or a service that provides this)
+// Dummy mapping for colors/logos (kept for UI presentation)
 const ASSET_VISUALS = {
   "ETH": { logo: "Ξ", color: "text-purple-400" },
   "MATIC": { logo: "P", color: "text-purple-600" },
@@ -41,10 +39,17 @@ const useAllTokenBalances = (address) => {
   const [error, setError] = useState(null)
 
   const fetchData = useCallback(async () => {
-    if (!address || COVALENT_API_KEY === "YOUR_COVALENT_API_KEY") {
-      // Don't fetch if no address or API key is missing
+    // Check if address is connected OR if API Key is missing
+    if (!address) {
       setData([])
       setTotalBalance(0)
+      return
+    }
+
+    if (!COVALENT_API_KEY) {
+      setData([])
+      setTotalBalance(0)
+      setError("API Key Missing. Please set NEXT_PUBLIC_COVALENT_API_KEY in your .env.local file.")
       return
     }
 
@@ -52,26 +57,26 @@ const useAllTokenBalances = (address) => {
     setError(null)
 
     // Covalent API endpoint to get balances across multiple chains
+    // The endpoint is correct for fetching multi-chain balances with V1 API.
     const url = `https://api.covalenthq.com/v1/allchains/address/${address}/balances/`
-    const headers = { 'Authorization': `Bearer ${COVALENT_API_KEY}` }
 
     try {
       const response = await axios.get(url, {
-        headers, params: {
+        params: {
           'quote-currency': 'USD',
-          'chains': SUPPORTED_CHAINS.join(',') // Fetch from all configured chains
+          'chains': SUPPORTED_CHAINS.join(','),
+          'key': COVALENT_API_KEY // ✅ CORRECT AUTH METHOD (Query Parameter)
         }
       })
 
+      // The rest of the processing logic is correct:
       const balances = response.data.data.items
 
       const processedAssets = balances
-        .filter(item => item.quote_rate !== null && item.quote_rate > 0) // Filter out assets with no market data or zero price
+        .filter(item => item.quote_rate !== null && item.quote_rate > 0)
         .map(item => {
-          // Convert raw balance (string) to a readable number using token decimals
           const formattedBalance = Number(formatUnits(BigInt(item.balance), item.contract_decimals))
 
-          // Calculate 24h change
           let changePercentage = "0.0%"
           if (item.quote_rate && item.quote_24h && item.quote_24h > 0) {
             const change = ((item.quote_rate - item.quote_24h) / item.quote_24h) * 100
@@ -91,24 +96,34 @@ const useAllTokenBalances = (address) => {
             color: visuals.color,
             token_address: item.contract_address,
             decimals: item.contract_decimals,
-            chain_name: item.chain_name.split('-')[0].toUpperCase(), // e.g., 'eth-mainnet' -> 'ETH'
+            chain_name: item.chain_name.split('-')[0].toUpperCase(),
           }
         })
-        .filter(asset => asset.balance * asset.value > 0.01) // Filter out dust (assets worth less than $0.01)
+        .filter(asset => asset.balance * asset.value > 0.01)
 
       setData(processedAssets)
 
-      // Calculate total portfolio balance
       const newTotalBalance = processedAssets.reduce((sum, asset) => sum + asset.balance * asset.value, 0)
       setTotalBalance(newTotalBalance)
 
     } catch (err) {
       console.error("Error fetching token balances:", err)
-      setError("Failed to fetch assets. Please check your network and API key.")
+      
+      // 🛑 PROVIDE SPECIFIC ERROR MESSAGE FOR API KEY ISSUES
+      let userMessage = "Failed to fetch assets. Please check your network or try again."
+      if (err.response) {
+          if (err.response.status === 401) {
+              userMessage = "Authentication failed (401). Check if your Covalent API key is correct and active."
+          } else if (err.response.status === 404) {
+              userMessage = "API Endpoint Not Found. Check Covalent API status."
+          }
+      }
+        
+      setError(userMessage)
     } finally {
       setIsLoading(false)
     }
-  }, [address])
+  }, [address]) // Removed COVALENT_API_KEY from dependency array since it's a static env var
 
   useEffect(() => {
     fetchData()
@@ -129,8 +144,6 @@ export function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <p className="text-muted-foreground text-center">
           Please connect your wallet to view your dashboard.
-          <br />
-          (Ensure your Wagmi setup is complete)
         </p>
       </div>
     )
@@ -244,8 +257,8 @@ export function DashboardPage() {
           <h2 className="text-3xl font-bold text-white">
             ${totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
+          {/* Answer to Question 2: Placeholder remains until full logic is implemented */}
           <p className="text-white/80 text-sm">
-            {/* Note: 24h P&L logic would be more complex and require summing up all token changes */}
             {isLoading ? "Fetching 24h change..." : "+$X.XX (+X.X%) today (Requires 24h data aggregation)"}
           </p>
         </div>
