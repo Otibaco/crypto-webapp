@@ -12,34 +12,46 @@ import { formatUnits } from "viem"
 // --- CONFIGURATION CONSTANTS ---
 const MORALIS_API_KEY = process.env.NEXT_PUBLIC_MORALIS_API_KEY
 
-// **FIXED:** Added Sepolia (0xaa36a7) to the list of chains to query.
+// **UPDATED:** Expanded to include all major Moralis-supported EVM Mainnets for broad coverage.
 const SUPPORTED_CHAIN_IDS = [
     '0x1',        // Ethereum Mainnet
+    '0xa',        // Optimism Mainnet
+    '0xa4b1',     // Arbitrum Mainnet
     '0x89',       // Polygon Mainnet
     '0x38',       // BNB Smart Chain (BSC)
-    '0xaa36a7',   // **Sepolia Testnet**
-    // Solana requires a separate endpoint in Moralis. For simplicity 
-    // and combined data, we stick to EVM chains for this combined asset list.
+    '0xa86a',     // Avalanche C-Chain (AVAX)
+    '0xfa',       // Fantom Opera
+    '0x2105',     // Base Mainnet
+    '0xaa36a7',   // Sepolia Testnet (Kept for testing)
 ]
 
-// **FIXED:** Added Sepolia for display name conversion.
+// **UPDATED:** Expanded chain name conversion for display.
 const CHAIN_ID_TO_NAME = {
     '0x1': 'ETH',
+    '0xa': 'OPTIMISM',
+    '0xa4b1': 'ARBITRUM',
     '0x89': 'POLYGON',
     '0x38': 'BSC',
-    '0xaa36a7': 'SEPOLIA', // **Added Sepolia**
+    '0xa86a': 'AVALANCHE',
+    '0xfa': 'FANTOM',
+    '0x2105': 'BASE',
+    '0xaa36a7': 'SEPOLIA',
 }
 
-// Dummy mapping for colors/logos (kept for UI presentation)
+// Dummy mapping for colors/logos (Kept the original set, others will use default 'A')
 const ASSET_VISUALS = {
     "ETH": { logo: "Ξ", color: "text-purple-400" },
     "MATIC": { logo: "P", color: "text-purple-600" },
     "BNB": { logo: "B", color: "text-yellow-400" },
+    "AVAX": { logo: "A", color: "text-red-500" }, // Added
+    "OP": { logo: "O", color: "text-red-400" }, // Added
+    "ARB": { logo: "A", color: "text-blue-400" }, // Added
+    "FTM": { logo: "F", color: "text-blue-300" }, // Added
+    "BASE": { logo: "B", color: "text-blue-500" }, // Added
     "USDC": { logo: "$", color: "text-blue-500" },
     "USDT": { logo: "$", color: "text-green-500" },
     "DAI": { logo: "Ð", color: "text-yellow-300" },
     "WETH": { logo: "Ξ", color: "text-purple-400" },
-    // **Added visual for the native Sepolia test token**
     "SEPOLIAETH": { logo: "S", color: "text-gray-400" }, 
 }
 
@@ -47,6 +59,9 @@ const ASSET_VISUALS = {
 const useAllTokenBalances = (address) => {
     const [data, setData] = useState([])
     const [totalBalance, setTotalBalance] = useState(0)
+    const [totalChangeUSD, setTotalChangeUSD] = useState(0)
+    const [totalChangePercent, setTotalChangePercent] = useState(0)
+    
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
 
@@ -67,12 +82,13 @@ const useAllTokenBalances = (address) => {
         }
 
         let allAssets = [];
-        let totalUSD = 0;
+        let currentTotalUSD = 0;
+        let totalValue24hAgo = 0; 
 
         try {
             // Loop through each chain to get token balances and prices
             for (const chainId of SUPPORTED_CHAIN_IDS) {
-                // Moralis deep-index/v2.2/wallets/{address}/tokens endpoint is correct for all EVM chains
+                // The wallet/tokens endpoint is the correct one for EVM multi-chain balances
                 const url = `https://deep-index.moralis.io/api/v2.2/wallets/${address}/tokens`
 
                 const response = await axios.get(url, {
@@ -80,7 +96,7 @@ const useAllTokenBalances = (address) => {
                     params: {
                         'chain': chainId,
                         'exclude_spam': true,
-                        'exclude_native': false, // Ensure we include the native asset (ETH, BNB, MATIC, SepoliaETH)
+                        'exclude_native': false,
                         'limit': 100 
                     }
                 })
@@ -89,27 +105,37 @@ const useAllTokenBalances = (address) => {
                 const chainAssets = response.data.result.map(item => {
                     const balanceBigInt = BigInt(item.balance || 0)
                     
-                    // Skip if balance is zero or null, or if it's spam (Moralis provides this flag)
                     if (balanceBigInt === 0n || item.possible_spam === true) return null
 
                     const formattedBalance = Number(formatUnits(balanceBigInt, item.decimals || 18))
                     
-                    // **Improvement for Testnets:** Use 0 if usdValue is null (typical for SepoliaETH)
                     const priceUSD = item.usdValue || 0 
                     const assetValue = formattedBalance * priceUSD
 
-                    // Extract 24-hour change provided by Moralis
+                    // CALCULATE 24H CHANGE FOR AGGREGATION
+                    const change24h = item.usdPrice24hrPercentChange || 0
+                    // Price 24h ago = Current Price / (1 + (Change / 100))
+                    // We check if change24h is not -100 to avoid division by zero/near-zero for a full crash/pump.
+                    const price24hAgo = priceUSD / (1 + change24h / 100)
+                    const assetValue24hAgo = (price24hAgo * formattedBalance) || 0
+
+                    // AGGREGATE THE TOTALS
+                    currentTotalUSD += assetValue
+                    // Only aggregate the 24h value if the price data was actually available (priceUSD > 0).
+                    if (priceUSD > 0) { 
+                        totalValue24hAgo += assetValue24hAgo
+                    }
+
+
+                    // INDIVIDUAL ASSET DATA
                     let changePercentage = "0.0%"
                     if (item.usdPrice24hrPercentChange) {
                         const change = item.usdPrice24hrPercentChange
                         changePercentage = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`
                     }
 
-                    totalUSD += assetValue
-
-                    // Use the Moralis symbol, or a custom one for native assets lacking one
                     const symbol = item.symbol || (CHAIN_ID_TO_NAME[chainId] === 'SEPOLIA' ? 'SEPOLIAETH' : CHAIN_ID_TO_NAME[chainId] || 'NATIVE')
-                    const visuals = ASSET_VISUALS[symbol] || { logo: 'A', color: 'text-gray-400' }
+                    const visuals = ASSET_VISUALS[symbol] || { logo: symbol.charAt(0) || 'A', color: 'text-gray-400' } // Fallback to first letter
 
                     return {
                         symbol: symbol,
@@ -122,16 +148,23 @@ const useAllTokenBalances = (address) => {
                         color: visuals.color,
                         chain_name: CHAIN_ID_TO_NAME[chainId] || chainId,
                     }
-                }).filter(Boolean) // Remove null entries (spam/zero balance)
+                }).filter(Boolean)
 
                 allAssets = [...allAssets, ...chainAssets]
             }
 
-            // Filter out dust amounts and set data
-            // **Testnet Note:** Filtering by totalValue > 0.01 is generally fine, 
-            // but for testnets, we rely on the balance not being zero.
-            setData(allAssets.filter(asset => asset.balance > 0)) // Filter any zero-balance assets
-            setTotalBalance(totalUSD)
+            // FINAL TOTAL PORTFOLIO CALCULATION
+            const changeUSD = currentTotalUSD - totalValue24hAgo
+            let changePercent = 0
+            if (totalValue24hAgo > 0.01) { // Check for a minimal value to prevent dividing by zero or near-zero
+                 changePercent = (changeUSD / totalValue24hAgo) * 100
+            }
+            
+            setTotalChangeUSD(changeUSD)
+            setTotalChangePercent(changePercent)
+            
+            setData(allAssets.filter(asset => asset.balance > 0))
+            setTotalBalance(currentTotalUSD) 
 
         } catch (err) {
             console.error("Error fetching token balances from Moralis:", err.response ? err.response.data : err)
@@ -143,20 +176,24 @@ const useAllTokenBalances = (address) => {
                 }
             }
             setError(userMessage)
+            
+            setTotalChangeUSD(0)
+            setTotalChangePercent(0)
+            setTotalBalance(0)
+            setData([])
         } finally {
             setIsLoading(false)
         }
     }, [address])
 
     useEffect(() => {
-        // Initial fetch and set up interval for "real-time" update (every 15 seconds)
         fetchData()
         const intervalId = setInterval(fetchData, 15000); 
 
-        return () => clearInterval(intervalId); // Cleanup on unmount
+        return () => clearInterval(intervalId);
     }, [fetchData])
 
-    return { data, totalBalance, isLoading, error, refetch: fetchData }
+    return { data, totalBalance, totalChangeUSD, totalChangePercent, isLoading, error, refetch: fetchData }
 }
 
 // --- Main Component ---
@@ -164,7 +201,7 @@ export function DashboardPage() {
     const { address, isConnected } = useAccount()
     const chainId = useChainId()
 
-    const { data: assets, totalBalance, isLoading, error, refetch } = useAllTokenBalances(address)
+    const { data: assets, totalBalance, totalChangeUSD, totalChangePercent, isLoading, error, refetch } = useAllTokenBalances(address)
 
     if (!isConnected) {
         return (
@@ -176,8 +213,17 @@ export function DashboardPage() {
         )
     }
 
-    // Convert numeric chainId to hex for display consistency (optional)
     const displayChainId = `0x${chainId.toString(16)}`
+    
+    // Helper function to format the total change line
+    const formatTotalChange = () => {
+        const changeUSD = Math.abs(totalChangeUSD).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        const changePercent = Math.abs(totalChangePercent).toFixed(2)
+
+        const sign = totalChangeUSD >= 0 ? '+' : ''
+        
+        return `${sign}$${changeUSD} (${sign}${changePercent}%) today`
+    }
     
     // A basic loading and error state
     const renderContent = () => {
@@ -201,15 +247,14 @@ export function DashboardPage() {
             )
         }
         
-        // **Improved UI feedback:** Show the supported chains based on the code config.
         const supportedChainNames = SUPPORTED_CHAIN_IDS.map(id => CHAIN_ID_TO_NAME[id] || id).join(', ')
 
         if (assets.length === 0 && !isLoading) {
             return (
                 <div className="p-4 text-center">
-                    <p className="text-muted-foreground">No assets found in your wallet on the connected chains.</p>
+                    <p className="text-muted-foreground">No EVM assets found in your wallet on the connected chains.</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Supported Chains (Queried): {supportedChainNames}.
+                        **Max EVM Coverage:** {supportedChainNames}.
                         Connected Address: {address?.slice(0, 6)}...{address?.slice(-4)}
                     </p>
                     <Button onClick={refetch} variant="ghost" className="mt-2">
@@ -222,7 +267,7 @@ export function DashboardPage() {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Your Assets</h3>
+                    <h3 className="text-lg font-semibold">Your EVM Assets</h3>
                     <Button variant="ghost" size="sm" onClick={refetch} className="text-primary">
                         Refresh
                     </Button>
@@ -296,12 +341,16 @@ export function DashboardPage() {
                 <div className="text-center space-y-2">
                     <p className="text-white/80 text-sm">Total Portfolio Value (USD)</p>
                     <h2 className="text-3xl font-bold text-white">
-                        {/* Display $0.00 for testnet-only portfolios */}
                         ${totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </h2>
-                    {/* Placeholder is still here */}
-                    <p className="text-white/80 text-sm">
-                        {isLoading ? "Fetching 24h change..." : "+$X.XX (+X.X%) today (Requires 24h data aggregation)"}
+                    
+                    {/* IMPLEMENTED 24h CHANGE LINE */}
+                    <p className={`text-sm ${totalChangeUSD > 0.01 ? 'text-green-300' : totalChangeUSD < -0.01 ? 'text-red-400' : 'text-white/80'}`}>
+                        {isLoading 
+                            ? "Fetching 24h change..." 
+                            : totalBalance > 0.01 || (totalBalance > 0 && totalChangeUSD !== 0)
+                                ? formatTotalChange() 
+                                : "No meaningful price data for 24h change"}
                     </p>
                 </div>
             </Card>
