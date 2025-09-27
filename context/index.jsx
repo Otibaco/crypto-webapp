@@ -11,10 +11,10 @@ const queryClient = new QueryClient()
 
 // Set up metadata
 const metadata = {
-  name: 'next-reown-appkit',
+  name: 'next-reown-appkit', 
   description: 'next-reown-appkit',
-  url: 'https://crypto-webapp-phi.vercel.app',  
-  // url: 'http://localhost:3000',
+  //url: 'https://crypto-webapp-phi.vercel.app',  
+  url: 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
