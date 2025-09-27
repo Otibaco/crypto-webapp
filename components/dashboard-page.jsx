@@ -11,22 +11,23 @@ import { formatUnits } from "viem"
 
 // --- CONFIGURATION CONSTANTS ---
 const MORALIS_API_KEY = process.env.NEXT_PUBLIC_MORALIS_API_KEY
-// Moralis supports chain IDs directly. We focus on EVM chains with token data.
+
+// **FIXED:** Added Sepolia (0xaa36a7) to the list of chains to query.
 const SUPPORTED_CHAIN_IDS = [
-    '0x1',      // Ethereum Mainnet
-    '0x89',     // Polygon Mainnet
-    '0x38',     // BNB Smart Chain (BSC)
-    '0xaa36a7', // **Sepolia Testnet - ADD THIS**
+    '0x1',        // Ethereum Mainnet
+    '0x89',       // Polygon Mainnet
+    '0x38',       // BNB Smart Chain (BSC)
+    '0xaa36a7',   // **Sepolia Testnet**
     // Solana requires a separate endpoint in Moralis. For simplicity 
     // and combined data, we stick to EVM chains for this combined asset list.
 ]
 
-// Helper to convert chain ID to a friendly name for display
+// **FIXED:** Added Sepolia for display name conversion.
 const CHAIN_ID_TO_NAME = {
     '0x1': 'ETH',
     '0x89': 'POLYGON',
     '0x38': 'BSC',
-    '0xaa36a7': 'SEPOLIA', // **ADD THIS**
+    '0xaa36a7': 'SEPOLIA', // **Added Sepolia**
 }
 
 // Dummy mapping for colors/logos (kept for UI presentation)
@@ -38,6 +39,8 @@ const ASSET_VISUALS = {
     "USDT": { logo: "$", color: "text-green-500" },
     "DAI": { logo: "Ð", color: "text-yellow-300" },
     "WETH": { logo: "Ξ", color: "text-purple-400" },
+    // **Added visual for the native Sepolia test token**
+    "SEPOLIAETH": { logo: "S", color: "text-gray-400" }, 
 }
 
 // --- Custom Hook to Fetch Data (USING MORALIS) ---
@@ -69,6 +72,7 @@ const useAllTokenBalances = (address) => {
         try {
             // Loop through each chain to get token balances and prices
             for (const chainId of SUPPORTED_CHAIN_IDS) {
+                // Moralis deep-index/v2.2/wallets/{address}/tokens endpoint is correct for all EVM chains
                 const url = `https://deep-index.moralis.io/api/v2.2/wallets/${address}/tokens`
 
                 const response = await axios.get(url, {
@@ -76,25 +80,26 @@ const useAllTokenBalances = (address) => {
                     params: {
                         'chain': chainId,
                         'exclude_spam': true,
-                        'exclude_native': false,
-                        'limit': 100 // Get up to 100 tokens per chain
+                        'exclude_native': false, // Ensure we include the native asset (ETH, BNB, MATIC, SepoliaETH)
+                        'limit': 100 
                     }
                 })
 
                 // Process assets from the current chain
                 const chainAssets = response.data.result.map(item => {
-                    const balanceBigInt = BigInt(item.balance)
+                    const balanceBigInt = BigInt(item.balance || 0)
                     
                     // Skip if balance is zero or null, or if it's spam (Moralis provides this flag)
                     if (balanceBigInt === 0n || item.possible_spam === true) return null
 
                     const formattedBalance = Number(formatUnits(balanceBigInt, item.decimals || 18))
-                    const priceUSD = item.usdValue || 0
+                    
+                    // **Improvement for Testnets:** Use 0 if usdValue is null (typical for SepoliaETH)
+                    const priceUSD = item.usdValue || 0 
                     const assetValue = formattedBalance * priceUSD
 
                     // Extract 24-hour change provided by Moralis
                     let changePercentage = "0.0%"
-                    
                     if (item.usdPrice24hrPercentChange) {
                         const change = item.usdPrice24hrPercentChange
                         changePercentage = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`
@@ -102,7 +107,8 @@ const useAllTokenBalances = (address) => {
 
                     totalUSD += assetValue
 
-                    const symbol = item.symbol || 'NATIVE'
+                    // Use the Moralis symbol, or a custom one for native assets lacking one
+                    const symbol = item.symbol || (CHAIN_ID_TO_NAME[chainId] === 'SEPOLIA' ? 'SEPOLIAETH' : CHAIN_ID_TO_NAME[chainId] || 'NATIVE')
                     const visuals = ASSET_VISUALS[symbol] || { logo: 'A', color: 'text-gray-400' }
 
                     return {
@@ -122,7 +128,9 @@ const useAllTokenBalances = (address) => {
             }
 
             // Filter out dust amounts and set data
-            setData(allAssets.filter(asset => asset.totalValue > 0.01)) 
+            // **Testnet Note:** Filtering by totalValue > 0.01 is generally fine, 
+            // but for testnets, we rely on the balance not being zero.
+            setData(allAssets.filter(asset => asset.balance > 0)) // Filter any zero-balance assets
             setTotalBalance(totalUSD)
 
         } catch (err) {
@@ -168,6 +176,9 @@ export function DashboardPage() {
         )
     }
 
+    // Convert numeric chainId to hex for display consistency (optional)
+    const displayChainId = `0x${chainId.toString(16)}`
+    
     // A basic loading and error state
     const renderContent = () => {
         if (isLoading && assets.length === 0) {
@@ -189,13 +200,16 @@ export function DashboardPage() {
                 </div>
             )
         }
+        
+        // **Improved UI feedback:** Show the supported chains based on the code config.
+        const supportedChainNames = SUPPORTED_CHAIN_IDS.map(id => CHAIN_ID_TO_NAME[id] || id).join(', ')
 
         if (assets.length === 0 && !isLoading) {
             return (
                 <div className="p-4 text-center">
                     <p className="text-muted-foreground">No assets found in your wallet on the connected chains.</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Supported Chains: ETH, Polygon, BSC.
+                        Supported Chains (Queried): {supportedChainNames}.
                         Connected Address: {address?.slice(0, 6)}...{address?.slice(-4)}
                     </p>
                     <Button onClick={refetch} variant="ghost" className="mt-2">
@@ -241,13 +255,17 @@ export function DashboardPage() {
                                         {asset.balance.toLocaleString("en-US", { maximumFractionDigits: 6 })} {asset.symbol}
                                     </p>
                                     <div className="flex items-center gap-1 justify-end">
+                                        {/* Display 'No price' for zero-value assets (e.g., testnets) */}
                                         <p className="text-sm text-muted-foreground">
-                                            ${asset.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {asset.totalValue > 0.01 
+                                                ? `$${asset.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                : "No price available"}
                                         </p>
-                                        {/* Use change data provided by Moralis */}
-                                        <span className={`text-xs ${asset.change.startsWith("+") ? "text-green-400" : "text-red-400"}`}>
-                                            {asset.change}
-                                        </span>
+                                        {asset.totalValue > 0.01 && (
+                                            <span className={`text-xs ${asset.change.startsWith("+") ? "text-green-400" : "text-red-400"}`}>
+                                                {asset.change}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -265,7 +283,7 @@ export function DashboardPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
                     <p className="text-muted-foreground">
-                        Wallet: {address?.slice(0, 6)}...{address?.slice(-4)} | Chain ID: {chainId}
+                        Wallet: {address?.slice(0, 6)}...{address?.slice(-4)} | Chain ID: {displayChainId}
                     </p>
                 </div>
                 <div className="w-10 h-10 rounded-full gradient-purple-blue flex items-center justify-center">
@@ -278,16 +296,17 @@ export function DashboardPage() {
                 <div className="text-center space-y-2">
                     <p className="text-white/80 text-sm">Total Portfolio Value (USD)</p>
                     <h2 className="text-3xl font-bold text-white">
+                        {/* Display $0.00 for testnet-only portfolios */}
                         ${totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </h2>
-                    {/* Placeholder is still here, as calculating total 24h P&L is complex */}
+                    {/* Placeholder is still here */}
                     <p className="text-white/80 text-sm">
                         {isLoading ? "Fetching 24h change..." : "+$X.XX (+X.X%) today (Requires 24h data aggregation)"}
                     </p>
                 </div>
             </Card>
 
-            {/* Action Buttons (Using original dummy structure for navigation) */}
+            {/* Action Buttons */}
             <div className="grid grid-cols-4 gap-3 md:grid-cols-4 md:gap-4 lg:max-w-md lg:mx-auto">
                 <Link href="/send" passHref>
                     <Button asChild className="h-16 w-full flex flex-col gap-1 bg-secondary hover:bg-secondary/80 active:scale-95 transition-all duration-200 md:h-20">
