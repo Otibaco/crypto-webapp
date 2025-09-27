@@ -16,6 +16,7 @@ const SUPPORTED_CHAIN_IDS = [
     '0x1',      // Ethereum Mainnet
     '0x89',     // Polygon Mainnet
     '0x38',     // BNB Smart Chain (BSC)
+    '0xaa36a7', // **Sepolia Testnet - ADD THIS**
     // Solana requires a separate endpoint in Moralis. For simplicity 
     // and combined data, we stick to EVM chains for this combined asset list.
 ]
@@ -25,6 +26,7 @@ const CHAIN_ID_TO_NAME = {
     '0x1': 'ETH',
     '0x89': 'POLYGON',
     '0x38': 'BSC',
+    '0xaa36a7': 'SEPOLIA', // **ADD THIS**
 }
 
 // Dummy mapping for colors/logos (kept for UI presentation)

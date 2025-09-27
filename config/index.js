@@ -10,7 +10,7 @@ if (!projectId) {
 
 // We are providing a curated list of only Ethereum networks (Mainnet and Sepolia Testnet).
 // This eliminates the "Select Chain" prompt for EVM wallets like MetaMask.
-export const networks = [mainnet, sepolia];
+export const networks = [sepolia,mainnet];
 
 // Set up the Wagmi Adapter for EVM networks.
 export const wagmiAdapter = new WagmiAdapter({
