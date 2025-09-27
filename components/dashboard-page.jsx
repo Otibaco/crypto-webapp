@@ -12,7 +12,7 @@ import { formatUnits } from "viem"
 // --- CONFIGURATION CONSTANTS ---
 // IMPORTANT: Accessing the key from environment variable
 // Ensure your key is set in .env.local as NEXT_PUBLIC_COVALENT_API_KEY
-const COVALENT_API_KEY = "cqt_rQwCVT8kP7DxxMf4d9jQMPDYxVpk"
+const COVALENT_API_KEY = "cqt_rQwCVT8kP7DxxMf4d9jQMPDYxVpk" // process.env.NEXT_PUBLIC_COVALENT_API_KEY || "" --- IGNORE ---
 const SUPPORTED_CHAINS = [
   "eth-mainnet",
   "polygon-mainnet",
