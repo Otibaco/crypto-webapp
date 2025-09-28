@@ -52,7 +52,7 @@ const ASSET_VISUALS = {
     "USDT": { logo: "$", color: "text-green-500" },
     "DAI": { logo: "Ð", color: "text-yellow-300" },
     "WETH": { logo: "Ξ", color: "text-purple-400" },
-    "SEPOLIAETH": { logo: "S", color: "text-gray-400" }, 
+    "SEPOLIAETH": { logo: "S", color: "text-gray-400" },
 }
 
 // --- Custom Hook to Fetch Data (USING MORALIS) ---
@@ -61,13 +61,13 @@ const useAllTokenBalances = (address) => {
     const [totalBalance, setTotalBalance] = useState(0)
     const [totalChangeUSD, setTotalChangeUSD] = useState(0)
     const [totalChangePercent, setTotalChangePercent] = useState(0)
-    
+
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
 
     const fetchData = useCallback(async () => {
         if (!address) return
-        
+
         if (!MORALIS_API_KEY) {
             setError("API Key Missing. Please set NEXT_PUBLIC_MORALIS_API_KEY.")
             return
@@ -78,12 +78,12 @@ const useAllTokenBalances = (address) => {
 
         const headers = {
             'accept': 'application/json',
-            'X-API-Key': MORALIS_API_KEY 
+            'X-API-Key': MORALIS_API_KEY
         }
 
         let allAssets = [];
         let currentTotalUSD = 0;
-        let totalValue24hAgo = 0; 
+        let totalValue24hAgo = 0;
 
         try {
             // Loop through each chain to get token balances and prices
@@ -97,19 +97,19 @@ const useAllTokenBalances = (address) => {
                         'chain': chainId,
                         'exclude_spam': true,
                         'exclude_native': false,
-                        'limit': 100 
+                        'limit': 100
                     }
                 })
 
                 // Process assets from the current chain
                 const chainAssets = response.data.result.map(item => {
                     const balanceBigInt = BigInt(item.balance || 0)
-                    
+
                     if (balanceBigInt === 0n || item.possible_spam === true) return null
 
                     const formattedBalance = Number(formatUnits(balanceBigInt, item.decimals || 18))
-                    
-                    const priceUSD = item.usdValue || 0 
+
+                    const priceUSD = item.usdValue || 0
                     const assetValue = formattedBalance * priceUSD
 
                     // CALCULATE 24H CHANGE FOR AGGREGATION
@@ -122,7 +122,7 @@ const useAllTokenBalances = (address) => {
                     // AGGREGATE THE TOTALS
                     currentTotalUSD += assetValue
                     // Only aggregate the 24h value if the price data was actually available (priceUSD > 0).
-                    if (priceUSD > 0) { 
+                    if (priceUSD > 0) {
                         totalValue24hAgo += assetValue24hAgo
                     }
 
@@ -157,18 +157,18 @@ const useAllTokenBalances = (address) => {
             const changeUSD = currentTotalUSD - totalValue24hAgo
             let changePercent = 0
             if (totalValue24hAgo > 0.01) { // Check for a minimal value to prevent dividing by zero or near-zero
-                 changePercent = (changeUSD / totalValue24hAgo) * 100
+                changePercent = (changeUSD / totalValue24hAgo) * 100
             }
-            
+
             setTotalChangeUSD(changeUSD)
             setTotalChangePercent(changePercent)
-            
+
             setData(allAssets.filter(asset => asset.balance > 0))
-            setTotalBalance(currentTotalUSD) 
+            setTotalBalance(currentTotalUSD)
 
         } catch (err) {
             console.error("Error fetching token balances from Moralis:", err.response ? err.response.data : err)
-            
+
             let userMessage = "Failed to fetch assets. Please check your network or try again."
             if (err.response) {
                 if (err.response.status === 401 || err.response.status === 403) {
@@ -176,7 +176,7 @@ const useAllTokenBalances = (address) => {
                 }
             }
             setError(userMessage)
-            
+
             setTotalChangeUSD(0)
             setTotalChangePercent(0)
             setTotalBalance(0)
@@ -188,7 +188,7 @@ const useAllTokenBalances = (address) => {
 
     useEffect(() => {
         fetchData()
-        const intervalId = setInterval(fetchData, 15000); 
+        const intervalId = setInterval(fetchData, 15000);
 
         return () => clearInterval(intervalId);
     }, [fetchData])
@@ -214,17 +214,20 @@ export function DashboardPage() {
     }
 
     const displayChainId = `0x${chainId.toString(16)}`
-    
+
+    // 1. Get the current chain name for the safety notice in the Receive page
+    const currentChainName = CHAIN_ID_TO_NAME[displayChainId] || 'Ethereum Mainnet';
+
     // Helper function to format the total change line
     const formatTotalChange = () => {
         const changeUSD = Math.abs(totalChangeUSD).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         const changePercent = Math.abs(totalChangePercent).toFixed(2)
 
         const sign = totalChangeUSD >= 0 ? '+' : ''
-        
+
         return `${sign}$${changeUSD} (${sign}${changePercent}%) today`
     }
-    
+
     // A basic loading and error state
     const renderContent = () => {
         if (isLoading && assets.length === 0) {
@@ -246,7 +249,7 @@ export function DashboardPage() {
                 </div>
             )
         }
-        
+
         const supportedChainNames = SUPPORTED_CHAIN_IDS.map(id => CHAIN_ID_TO_NAME[id] || id).join(', ')
 
         if (assets.length === 0 && !isLoading) {
@@ -302,7 +305,7 @@ export function DashboardPage() {
                                     <div className="flex items-center gap-1 justify-end">
                                         {/* Display 'No price' for zero-value assets (e.g., testnets) */}
                                         <p className="text-sm text-muted-foreground">
-                                            {asset.totalValue > 0.01 
+                                            {asset.totalValue > 0.01
                                                 ? `$${asset.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                 : "No price available"}
                                         </p>
@@ -343,13 +346,13 @@ export function DashboardPage() {
                     <h2 className="text-3xl font-bold text-white">
                         ${totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </h2>
-                    
+
                     {/* IMPLEMENTED 24h CHANGE LINE */}
                     <p className={`text-sm ${totalChangeUSD > 0.01 ? 'text-green-300' : totalChangeUSD < -0.01 ? 'text-red-400' : 'text-white/80'}`}>
-                        {isLoading 
-                            ? "Fetching 24h change..." 
+                        {isLoading
+                            ? "Fetching 24h change..."
                             : totalBalance > 0.01 || (totalBalance > 0 && totalChangeUSD !== 0)
-                                ? formatTotalChange() 
+                                ? formatTotalChange()
                                 : "No meaningful price data for 24h change"}
                     </p>
                 </div>
@@ -365,7 +368,16 @@ export function DashboardPage() {
                         </div>
                     </Button>
                 </Link>
-                <Link href="/receive" passHref>
+                <Link
+                    href={{
+                        pathname: "/receive",
+                        query: {
+                            address: address, // Pass the connected wallet address
+                            chain: currentChainName // Pass the current connected chain name
+                        }
+                    }}
+                    passHref
+                >
                     <Button asChild className="h-16 w-full flex flex-col gap-1 bg-secondary hover:bg-secondary/80 active:scale-95 transition-all duration-200 md:h-20">
                         <div>
                             <ArrowDown className="h-5 w-5 text-accent md:h-6 md:w-6" />
@@ -390,7 +402,7 @@ export function DashboardPage() {
                     </Button>
                 </Link>
             </div>
-            
+
             {/* Your Assets */}
             {renderContent()}
 

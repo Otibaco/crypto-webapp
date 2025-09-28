@@ -1,18 +1,28 @@
+// components/receive-page.jsx
 "use client"
 
 import { useState } from "react"
+// Import QRCode library
+import QRCode from 'qrcode.react';
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
-import { Copy, Check, AlertTriangle, QrCode } from "lucide-react"
+import { Copy, Check, AlertTriangle } from "lucide-react"
+// Removed QrCode from lucide-react as we use the functional component
 
-export function ReceivePage() {
+// The component now accepts props: walletAddress and chainName (and optional onClose)
+export function ReceivePage({ walletAddress, chainName, onClose }) {
   const [copied, setCopied] = useState(false)
-  const walletAddress = "0x742d35Cc6634C0532925a3b8D4C2C4e4C4C4C4C4"
-  const truncatedAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+
+  // Default to a safe, empty state if data is missing
+  const displayAddress = walletAddress || "0x0000000000000000000000000000000000000000"
+  const displayChainName = chainName || "Unknown Network"
+  const truncatedAddress = `${displayAddress.slice(0, 6)}...${displayAddress.slice(-4)}`
 
   const copyAddress = async () => {
+    if (!displayAddress || displayAddress.startsWith("0x0000")) return;
+
     try {
-      await navigator.clipboard.writeText(walletAddress)
+      await navigator.clipboard.writeText(displayAddress)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -20,21 +30,42 @@ export function ReceivePage() {
     }
   }
 
+  // Safety check for rendering
+  if (!walletAddress) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <AlertTriangle className="h-10 w-10 mx-auto text-red-500" />
+        <h1 className="text-xl font-bold">Error Loading Address</h1>
+        <p className="text-muted-foreground">The wallet address was not provided to the page.</p>
+        {onClose && (
+          <Button onClick={onClose} className="mt-4">Go Back</Button>
+        )}
+      </div>
+    )
+  }
+
+
   return (
     <div className="p-4 space-y-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-2 pt-4">
-        <h1 className="text-2xl font-bold text-foreground">Receive Crypto</h1>
+        <h1 className="text-2xl font-bold text-foreground">Receive {displayChainName}</h1>
         <p className="text-muted-foreground">Share your wallet address or QR code to receive payments</p>
       </div>
 
       {/* QR Code Card */}
       <Card className="p-6 space-y-4 glow-purple">
         <div className="flex flex-col items-center space-y-4 md:flex-row md:space-y-0 md:space-x-6 md:justify-center">
-          {/* QR Code */}
+          {/* QR Code - Now Functional */}
           <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center glow-cyan md:w-56 md:h-56">
-            <div className="w-40 h-40 bg-black rounded-lg flex items-center justify-center md:w-48 md:h-48">
-              <QrCode className="h-32 w-32 text-white md:h-40 md:w-40" />
+            <div className="w-40 h-40 bg-black rounded-lg flex items-center justify-center p-2 md:w-48 md:h-48">
+              <QRCode
+                value={displayAddress} // Uses the dynamic address prop
+                size={160}
+                level="H"
+                fgColor="#000000"
+                bgColor="#ffffff"
+              />
             </div>
           </div>
 
@@ -43,7 +74,7 @@ export function ReceivePage() {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground font-medium">Your Wallet Address</p>
               <div className="space-y-3">
-                <p className="text-lg font-mono text-foreground break-all md:text-base">{walletAddress}</p>
+                <p className="text-lg font-mono text-foreground break-all md:text-base">{displayAddress}</p>
                 <p className="text-sm text-muted-foreground md:hidden">Tap to copy: {truncatedAddress}</p>
               </div>
             </div>
@@ -76,7 +107,7 @@ export function ReceivePage() {
           <div className="space-y-1">
             <p className="text-sm font-medium text-yellow-500">Important Safety Notice</p>
             <p className="text-sm text-muted-foreground">
-              Only send ETH to this address on the Ethereum network. Sending other assets or using different networks
+              Only send assets compatible with the **{displayChainName}** network to this address. Sending other assets or using different networks
               may result in permanent loss of funds.
             </p>
           </div>
@@ -88,11 +119,11 @@ export function ReceivePage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">Network</p>
-            <p className="text-xs text-muted-foreground">Ethereum Mainnet</p>
+            <p className="text-xs text-muted-foreground">{displayChainName}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">Supported Assets</p>
-            <p className="text-xs text-muted-foreground">ETH, ERC-20 Tokens</p>
+            <p className="text-xs text-muted-foreground">Native Coin, ERC-20 Tokens</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">Confirmations</p>
