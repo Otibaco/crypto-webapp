@@ -11,8 +11,8 @@ const queryClient = new QueryClient()
 
 // Set up metadata
 const metadata = {
-  name: 'next-reown-appkit', 
-  description: 'next-reown-appkit',
+  name: '2sweet',
+  description: 'Ethereum based dApp',
   //url: 'https://crypto-webapp-phi.vercel.app',  
   url: 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/179229932']
