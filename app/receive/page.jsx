@@ -1,12 +1,13 @@
 // receive/page.jsx
 "use client"; // Must be client-side to use the ReceivePage component
-
+import React from 'react'; 
 import { ReceivePage } from "../../components/receive-page"
 import { useRouter } from 'next/navigation'; // Hook to handle navigation back
 
 // Next.js passes searchParams to the page component
 export default function Receive({ searchParams }) {
   const router = useRouter();
+  const params = React.use(searchParams);
 
   // 1. Extract walletAddress and chainName from the URL search parameters
   const walletAddress = searchParams.address || '';
