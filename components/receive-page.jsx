@@ -2,8 +2,7 @@
 "use client"
 
 import { useState } from "react"
-// Import QRCode library
-import QRCode from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react'; 
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Copy, Check, AlertTriangle } from "lucide-react"
