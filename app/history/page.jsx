@@ -13,18 +13,18 @@ const SUPPORTED_CHAINS = ['eth', 'polygon', 'bsc', 'arbitrum', 'base'];
 const fetchTransactionHistory = async (address) => {
     if (!address) return [];
 
-    // Call the secure local API route created in Step 1
+    // Call the secure local API route
     const url = `/api/history?address=${address}&chains=${SUPPORTED_CHAINS.join(',')}`;
     
     const response = await fetch(url);
 
     if (!response.ok) {
+        // Reads the detailed JSON error from the fixed API route
         const errorData = await response.json();
-        // This correctly throws the error message provided by the server
         throw new Error(errorData.error || 'Failed to fetch transaction history.');
     }
 
-    // Returns the array of transactions
+    // Returns the array of transactions (either [tx] or [])
     return response.json(); 
 };
 
@@ -38,6 +38,8 @@ export default function History() {
         queryKey: ['transactionHistory', address],
         queryFn: () => fetchTransactionHistory(address),
         enabled: isConnected && !!address, // Only run if connected and address exists
+        // Add a placeholder to prevent 'undefined' in the final render if the data is empty
+        initialData: [] 
     });
 
     if (!isConnected) {
@@ -50,7 +52,9 @@ export default function History() {
         );
     }
     
-    if (isLoading || !transactions) {
+    // REFINED CHECK: Only show loading if we are actively fetching
+    // The use of initialData: [] ensures 'transactions' is always an array when not loading.
+    if (isLoading) {
         return (
             <div className="flex justify-center items-center p-12">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
@@ -70,9 +74,10 @@ export default function History() {
         );
     }
 
-    // 3. Render the UI component with the real fetched data and the connected address
+    // 3. Render the UI component with the fetched data and the connected address
     return (
         <div className="p-4 md:p-8">
+            {/* If transactions is an empty array, HistoryPage will show "No transactions found" */}
             <HistoryPage initialTransactions={transactions} walletAddress={address} />
         </div>
     );
