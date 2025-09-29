@@ -2,11 +2,11 @@
 "use client"
 
 import { useState } from "react"
-import { QRCodeCanvas } from 'qrcode.react'; 
+// CORRECTED IMPORT: Use { QRCodeCanvas } for qrcode.react
+import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Copy, Check, AlertTriangle } from "lucide-react"
-// Removed QrCode from lucide-react as we use the functional component
 
 // The component now accepts props: walletAddress and chainName (and optional onClose)
 export function ReceivePage({ walletAddress, chainName, onClose }) {
@@ -29,7 +29,6 @@ export function ReceivePage({ walletAddress, chainName, onClose }) {
     }
   }
 
-  // Safety check for rendering
   if (!walletAddress) {
     return (
       <div className="p-8 text-center space-y-4">
@@ -55,10 +54,10 @@ export function ReceivePage({ walletAddress, chainName, onClose }) {
       {/* QR Code Card */}
       <Card className="p-6 space-y-4 glow-purple">
         <div className="flex flex-col items-center space-y-4 md:flex-row md:space-y-0 md:space-x-6 md:justify-center">
-          {/* QR Code - Now Functional */}
+          {/* QR Code - FIX: Using <QRCodeCanvas /> */}
           <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center glow-cyan md:w-56 md:h-56">
             <div className="w-40 h-40 bg-black rounded-lg flex items-center justify-center p-2 md:w-48 md:h-48">
-              <QRCode
+              <QRCodeCanvas
                 value={displayAddress} // Uses the dynamic address prop
                 size={160}
                 level="H"
