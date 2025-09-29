@@ -1,18 +1,17 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+// NOTE: I'm assuming these components and libraries are installed in your Next.js environment.
 import { Card } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { ArrowUp, ArrowDown, ArrowUpDown, ShoppingCart, TrendingUp, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { useAccount, useChainId } from "wagmi"
-import axios from "axios"
-import { formatUnits } from "viem"
+import axios from "axios" // Used for client-side fetching from the local API route
 
-// --- CONFIGURATION CONSTANTS ---
-const MORALIS_API_KEY = process.env.NEXT_PUBLIC_MORALIS_API_KEY
 
-// **UPDATED:** Expanded to include all major Moralis-supported EVM Mainnets for broad coverage.
+// --- CONFIGURATION CONSTANTS (Client-side) ---
+// Define supported chain IDs and their names for display
 const SUPPORTED_CHAIN_IDS = [
     '0x1',        // Ethereum Mainnet
     '0xa',        // Optimism Mainnet
@@ -22,10 +21,9 @@ const SUPPORTED_CHAIN_IDS = [
     '0xa86a',     // Avalanche C-Chain (AVAX)
     '0xfa',       // Fantom Opera
     '0x2105',     // Base Mainnet
-    '0xaa36a7',   // Sepolia Testnet (Kept for testing)
+    '0xaa36a7',   // Sepolia Testnet
 ]
 
-// **UPDATED:** Expanded chain name conversion for display.
 const CHAIN_ID_TO_NAME = {
     '0x1': 'ETH',
     '0xa': 'OPTIMISM',
@@ -38,24 +36,30 @@ const CHAIN_ID_TO_NAME = {
     '0xaa36a7': 'SEPOLIA',
 }
 
-// Dummy mapping for colors/logos (Kept the original set, others will use default 'A')
+// Dummy mapping for colors/styling (Logo character is received from the API route)
 const ASSET_VISUALS = {
-    "ETH": { logo: "Ξ", color: "text-purple-400" },
-    "MATIC": { logo: "P", color: "text-purple-600" },
-    "BNB": { logo: "B", color: "text-yellow-400" },
-    "AVAX": { logo: "A", color: "text-red-500" }, // Added
-    "OP": { logo: "O", color: "text-red-400" }, // Added
-    "ARB": { logo: "A", color: "text-blue-400" }, // Added
-    "FTM": { logo: "F", color: "text-blue-300" }, // Added
-    "BASE": { logo: "B", color: "text-blue-500" }, // Added
-    "USDC": { logo: "$", color: "text-blue-500" },
-    "USDT": { logo: "$", color: "text-green-500" },
-    "DAI": { logo: "Ð", color: "text-yellow-300" },
-    "WETH": { logo: "Ξ", color: "text-purple-400" },
-    "SEPOLIAETH": { logo: "S", color: "text-gray-400" },
+    "ETH": { color: "text-purple-400" },
+    "MATIC": { color: "text-purple-600" },
+    "BNB": { color: "text-yellow-400" },
+    "AVAX": { color: "text-red-500" },
+    "OP": { color: "text-red-400" },
+    "ARB": { color: "text-blue-400" },
+    "FTM": { color: "text-blue-300" },
+    "BASE": { color: "text-blue-500" },
+    "USDC": { color: "text-blue-500" },
+    "USDT": { color: "text-green-500" },
+    "DAI": { color: "text-yellow-300" },
+    "WETH": { color: "text-purple-400" },
+    "SEPOLIAETH": { color: "text-gray-400" },
 }
 
-// --- Custom Hook to Fetch Data (USING MORALIS) ---
+// Helper to get color styling from the client-side map
+const getAssetColor = (symbol) => {
+    return ASSET_VISUALS[symbol]?.color || 'text-gray-400';
+}
+
+
+// --- Custom Hook to Fetch Data (USING LOCAL API) ---
 const useAllTokenBalances = (address) => {
     const [data, setData] = useState([])
     const [totalBalance, setTotalBalance] = useState(0)
@@ -68,113 +72,48 @@ const useAllTokenBalances = (address) => {
     const fetchData = useCallback(async () => {
         if (!address) return
 
-        if (!MORALIS_API_KEY) {
-            setError("API Key Missing. Please set NEXT_PUBLIC_MORALIS_API_KEY.")
-            return
-        }
-
         setIsLoading(true)
         setError(null)
 
-        const headers = {
-            'accept': 'application/json',
-            'X-API-Key': MORALIS_API_KEY
-        }
-
-        let allAssets = [];
-        let currentTotalUSD = 0;
-        let totalValue24hAgo = 0;
-
         try {
-            // Loop through each chain to get token balances and prices
-            for (const chainId of SUPPORTED_CHAIN_IDS) {
-                // The wallet/tokens endpoint is the correct one for EVM multi-chain balances
-                const url = `https://deep-index.moralis.io/api/v2.2/wallets/${address}/tokens`
+            // **UPDATED**: Call the new server-side API endpoint
+            const url = `/api/dashboard-data?address=${address}`
 
-                const response = await axios.get(url, {
-                    headers: headers,
-                    params: {
-                        'chain': chainId,
-                        'exclude_spam': true,
-                        'exclude_native': false,
-                        'limit': 100
-                    }
-                })
+            const response = await axios.get(url)
 
-                // Process assets from the current chain
-                const chainAssets = response.data.result.map(item => {
-                    const balanceBigInt = BigInt(item.balance || 0)
-
-                    if (balanceBigInt === 0n || item.possible_spam === true) return null
-
-                    const formattedBalance = Number(formatUnits(balanceBigInt, item.decimals || 18))
-
-                    const priceUSD = item.usdValue || 0
-                    const assetValue = formattedBalance * priceUSD
-
-                    // CALCULATE 24H CHANGE FOR AGGREGATION
-                    const change24h = item.usdPrice24hrPercentChange || 0
-                    // Price 24h ago = Current Price / (1 + (Change / 100))
-                    // We check if change24h is not -100 to avoid division by zero/near-zero for a full crash/pump.
-                    const price24hAgo = priceUSD / (1 + change24h / 100)
-                    const assetValue24hAgo = (price24hAgo * formattedBalance) || 0
-
-                    // AGGREGATE THE TOTALS
-                    currentTotalUSD += assetValue
-                    // Only aggregate the 24h value if the price data was actually available (priceUSD > 0).
-                    if (priceUSD > 0) {
-                        totalValue24hAgo += assetValue24hAgo
-                    }
-
-
-                    // INDIVIDUAL ASSET DATA
-                    let changePercentage = "0.0%"
-                    if (item.usdPrice24hrPercentChange) {
-                        const change = item.usdPrice24hrPercentChange
-                        changePercentage = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`
-                    }
-
-                    const symbol = item.symbol || (CHAIN_ID_TO_NAME[chainId] === 'SEPOLIA' ? 'SEPOLIAETH' : CHAIN_ID_TO_NAME[chainId] || 'NATIVE')
-                    const visuals = ASSET_VISUALS[symbol] || { logo: symbol.charAt(0) || 'A', color: 'text-gray-400' } // Fallback to first letter
-
-                    return {
-                        symbol: symbol,
-                        name: item.name || item.symbol,
-                        balance: formattedBalance,
-                        price: priceUSD,
-                        totalValue: assetValue,
-                        change: changePercentage,
-                        logo: visuals.logo,
-                        color: visuals.color,
-                        chain_name: CHAIN_ID_TO_NAME[chainId] || chainId,
-                    }
-                }).filter(Boolean)
-
-                allAssets = [...allAssets, ...chainAssets]
+            // Check for structured error from the server route
+            if (response.data.error) {
+                throw new Error(response.data.error)
             }
 
-            // FINAL TOTAL PORTFOLIO CALCULATION
-            const changeUSD = currentTotalUSD - totalValue24hAgo
-            let changePercent = 0
-            if (totalValue24hAgo > 0.01) { // Check for a minimal value to prevent dividing by zero or near-zero
-                changePercent = (changeUSD / totalValue24hAgo) * 100
-            }
+            const apiData = response.data;
 
-            setTotalChangeUSD(changeUSD)
-            setTotalChangePercent(changePercent)
+            // Map the API data to re-integrate client-side styling/visuals
+            const mappedData = apiData.data.map(asset => {
+                const color = getAssetColor(asset.symbol);
+                return {
+                    ...asset,
+                    color: color,
+                };
+            });
 
-            setData(allAssets.filter(asset => asset.balance > 0))
-            setTotalBalance(currentTotalUSD)
+
+            setData(mappedData)
+            setTotalBalance(apiData.totalBalance)
+            setTotalChangeUSD(apiData.totalChangeUSD)
+            setTotalChangePercent(apiData.totalChangePercent)
 
         } catch (err) {
-            console.error("Error fetching token balances from Moralis:", err.response ? err.response.data : err)
+            console.error("Error fetching token balances from local API:", err.response ? err.response.data : err.message)
 
-            let userMessage = "Failed to fetch assets. Please check your network or try again."
-            if (err.response) {
-                if (err.response.status === 401 || err.response.status === 403) {
-                    userMessage = "Authentication failed (401/403). Check if your Moralis API key is correct and active."
-                }
+            let userMessage = "Failed to fetch assets. Please try again."
+            // If the error comes from the server, use its message
+            if (err.response && err.response.data && err.response.data.error) {
+                 userMessage = err.response.data.error;
+            } else if (err.message) {
+                 userMessage = err.message;
             }
+
             setError(userMessage)
 
             setTotalChangeUSD(0)
@@ -188,6 +127,7 @@ const useAllTokenBalances = (address) => {
 
     useEffect(() => {
         fetchData()
+        // Set up the interval for refreshing data every 15 seconds
         const intervalId = setInterval(fetchData, 15000);
 
         return () => clearInterval(intervalId);
@@ -213,9 +153,10 @@ export function DashboardPage() {
         )
     }
 
+    // Format chain ID from number to hex string for display/lookup
     const displayChainId = `0x${chainId.toString(16)}`
 
-    // 1. Get the current chain name for the safety notice in the Receive page
+    // Get the current chain name for the safety notice in the Receive page
     const currentChainName = CHAIN_ID_TO_NAME[displayChainId] || 'Ethereum Mainnet';
 
     // Helper function to format the total change line
@@ -228,7 +169,7 @@ export function DashboardPage() {
         return `${sign}$${changeUSD} (${sign}${changePercent}%) today`
     }
 
-    // A basic loading and error state
+    // A basic loading and error state rendering function
     const renderContent = () => {
         if (isLoading && assets.length === 0) {
             return (
