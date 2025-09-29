@@ -1,4 +1,3 @@
-// app/history/page.jsx
 "use client";
 
 import { useAccount } from 'wagmi';
@@ -21,6 +20,7 @@ const fetchTransactionHistory = async (address) => {
 
     if (!response.ok) {
         const errorData = await response.json();
+        // This correctly throws the error message provided by the server
         throw new Error(errorData.error || 'Failed to fetch transaction history.');
     }
 
@@ -70,10 +70,10 @@ export default function History() {
         );
     }
 
-    // 3. Render the UI component with the real fetched data
+    // 3. Render the UI component with the real fetched data and the connected address
     return (
         <div className="p-4 md:p-8">
-            <HistoryPage initialTransactions={transactions} />
+            <HistoryPage initialTransactions={transactions} walletAddress={address} />
         </div>
     );
 }

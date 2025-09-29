@@ -1,7 +1,7 @@
-// components/history-page.jsx
 "use client"
 
 import { useState, useMemo } from "react"
+// Assuming these UI components are defined elsewhere (e.g., shadcn/ui)
 import { Card } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowUpDown, ExternalLink, Search } from "lucide-react"
@@ -11,13 +11,27 @@ import { cn } from "../lib/utils"
 import { format } from 'date-fns';
 
 // Helper function to format value from Moralis (which is in WEI)
-// NOTE: For a real app, this should be a more robust conversion using Viem's formatEther 
-// or fetching token metadata to know the correct decimal places. 
 const formatWeiValue = (value, chain) => {
     // Moralis transaction value is native coin amount in WEI.
     const decimal = 18; // Assume 18 decimals for most EVM coins (ETH, BNB, MATIC)
-    const amount = parseInt(value || '0', 10) / (10 ** decimal);
-    return `${amount.toFixed(4)} ${chain.toUpperCase()}`;
+    
+    try {
+        // Use BigInt for high precision handling
+        const valueBigInt = BigInt(value || '0');
+        const divisor = BigInt(10) ** BigInt(decimal);
+        
+        const integerPart = valueBigInt / divisor;
+        const fractionPart = valueBigInt % divisor;
+        
+        // Pad the fractional part to 4 decimals for display
+        const fractionString = fractionPart.toString().padStart(decimal, '0').slice(0, 4);
+        
+        return `${integerPart}.${fractionString} ${chain.toUpperCase()}`;
+    } catch (e) {
+        // Fallback for environments that don't fully support BigInt in arithmetic
+        const amount = Number(value || '0') / (10 ** 18);
+        return `${amount.toFixed(4)} ${chain.toUpperCase()}`;
+    }
 };
 
 // Helper function to get the block explorer link
@@ -33,27 +47,24 @@ const getExplorerLink = (hash, chain) => {
     return `${explorerBase}${hash}`;
 };
 
-// IMPORTANT: This component now takes the real transaction array as a prop
-export function HistoryPage({ initialTransactions }) {
+// IMPORTANT: This component now accepts the walletAddress prop
+export function HistoryPage({ initialTransactions, walletAddress }) {
     const [activeFilter, setActiveFilter] = useState("all")
     const [searchQuery, setSearchQuery] = useState("")
     
     // Moralis transactions do not include USD value or type, we have to infer/enrich them.
-    // For simplicity, we are only handling native coin transfers for now.
     const enrichedTransactions = useMemo(() => {
-        if (!initialTransactions) return [];
+        if (!initialTransactions || !walletAddress) return [];
+
+        const walletLower = walletAddress.toLowerCase();
 
         return initialTransactions.map(tx => {
-            // Placeholder: Moralis transactions are just transfers.
-            // We can't distinguish between a 'sent token' vs a 'sent coin' easily
-            // from this single endpoint. We treat them as native coin transfers.
             
-            // For a real-world wallet, you would need to use `getInternalTransactions` 
-            // and `getERC20Transfers` to build a complete history.
-
-            const type = (tx.value !== "0" && tx.to_address) ? "received" : "sent"; 
+            // CRITICAL FIX: Determine SENT vs. RECEIVED by checking against the connected wallet address
+            const type = (tx.from_address.toLowerCase() === walletLower) ? "sent" : "received"; 
             
-            // NOTE: A more robust check would compare tx.from_address to the connected wallet address
+            // Determine the counterparty address
+            const counterparty = type === "sent" ? tx.to_address : tx.from_address;
 
             return {
                 id: tx.hash,
@@ -61,9 +72,8 @@ export function HistoryPage({ initialTransactions }) {
                 asset: tx.chain.toUpperCase(),
                 amount: tx.value,
                 // USD value is not provided by this endpoint, requires another Moralis call.
-                // We leave it as a placeholder here.
                 value: 0, 
-                address: tx.to_address, // The recipient
+                address: counterparty, // Use the correct counterparty
                 date: tx.block_timestamp ? format(new Date(tx.block_timestamp), 'MMM dd, yyyy') : 'N/A',
                 time: tx.block_timestamp ? format(new Date(tx.block_timestamp), 'h:mm a') : 'N/A',
                 status: 'completed', // Moralis only returns completed transactions here
@@ -71,7 +81,7 @@ export function HistoryPage({ initialTransactions }) {
                 chain: tx.chain
             };
         });
-    }, [initialTransactions]);
+    }, [initialTransactions, walletAddress]);
 
 
     const filteredTransactions = enrichedTransactions.filter((tx) => {
@@ -148,7 +158,6 @@ export function HistoryPage({ initialTransactions }) {
 
             {/* Filter Tabs */}
             <div className="flex gap-2 p-1 bg-secondary rounded-lg">
-                {/* The filterOptions array should be defined if you want to use it */}
                  {[
                     { label: "All", value: "all" },
                     { label: "Sent", value: "sent" },
@@ -206,8 +215,10 @@ export function HistoryPage({ initialTransactions }) {
                                                 {transaction.status}
                                             </span>
                                         </div>
-                                        {/* Display only the first 12 chars of the address/hash for cleaner UI */}
-                                        <p className="text-sm text-muted-foreground">To: {transaction.address.slice(0, 6)}...{transaction.address.slice(-4)}</p>
+                                        {/* Display only the first 6 and last 4 chars of the address for cleaner UI */}
+                                        <p className="text-sm text-muted-foreground">
+                                            {transaction.type === "sent" ? "To:" : "From:"} {transaction.address.slice(0, 6)}...{transaction.address.slice(-4)}
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
                                             {transaction.date} • {transaction.time}
                                         </p>
