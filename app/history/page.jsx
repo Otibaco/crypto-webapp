@@ -5,8 +5,18 @@ import { useQuery } from '@tanstack/react-query';
 import { HistoryPage } from "../../components/history-page";
 import { Loader2, AlertTriangle } from 'lucide-react';
 
-// Define the chains your app supports. Must match Moralis's string names.
-const SUPPORTED_CHAINS = ['eth', 'polygon', 'bsc', 'arbitrum', 'base','sepolia']; 
+// Define the chains your app supports. Must match Moralis's string names.// Define the chains your app supports. Must match Moralis's string names.
+const SUPPORTED_CHAINS = [
+  'eth',        // Ethereum Mainnet (0x1)
+  'optimism',   // Optimism (0xa)
+  'arbitrum',   // Arbitrum (0xa4b1)
+  'polygon',    // Polygon (0x89)
+  'bsc',        // Binance Smart Chain (0x38)
+  'avalanche',  // Avalanche (0xa86a)
+  'fantom',     // Fantom (0xfa)
+  'base',       // Base (0x2105)
+  'sepolia'     // Sepolia Testnet (0xaa36a7)
+];
 
 // 1. Data Fetching Function: Calls the secure local API route
 const fetchTransactionHistory = async (address) => {

@@ -136,6 +136,7 @@ const useAllTokenBalances = (address) => {
     return { data, totalBalance, totalChangeUSD, totalChangePercent, isLoading, error, refetch: fetchData }
 }
 
+
 // --- Main Component ---
 export function DashboardPage() {
     const { address, isConnected } = useAccount()

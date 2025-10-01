@@ -3,21 +3,19 @@ import axios from 'axios'
 import { formatUnits } from 'viem'
 
 // Accessing the API key securely from the server environment
-// It checks for both NEXT_PUBLIC (though not recommended for server) and MORALIS_API_KEY
-// Use a standard .env or process.env configuration for security.
 const MORALIS_API_KEY = process.env.NEXT_PUBLIC_MORALIS_API_KEY || process.env.MORALIS_API_KEY;
 
-// --- CONFIGURATION CONSTANTS (Moved from component) ---
+// --- CONFIGURATION CONSTANTS ---
 const SUPPORTED_CHAIN_IDS = [
-    '0x1',        // Ethereum Mainnet
-    '0xa',        // Optimism Mainnet
-    '0xa4b1',     // Arbitrum Mainnet
-    '0x89',       // Polygon Mainnet
-    '0x38',       // BNB Smart Chain (BSC)
-    '0xa86a',     // Avalanche C-Chain (AVAX)
-    '0xfa',       // Fantom Opera
-    '0x2105',     // Base Mainnet
-    '0xaa36a7',   // Sepolia Testnet
+    '0x1',// Ethereum Mainnet
+    '0xa',// Optimism Mainnet
+    '0xa4b1',// Arbitrum Mainnet
+    '0x89',// Polygon Mainnet
+    '0x38',// BNB Smart Chain (BSC)
+    '0xa86a',// Avalanche C-Chain (AVAX)
+    '0xfa',// Fantom Opera
+    '0x2105', // Base Mainnet
+    '0xaa36a7',// Sepolia Testnet
 ]
 
 const CHAIN_ID_TO_NAME = {
@@ -32,7 +30,6 @@ const CHAIN_ID_TO_NAME = {
     '0xaa36a7': 'SEPOLIA',
 }
 
-// Dummy mapping for logos (colors/styling is handled back on the client)
 const ASSET_VISUALS_SYMBOLS = {
     "ETH": { logo: "Ξ" }, "MATIC": { logo: "P" }, "BNB": { logo: "B" },
     "AVAX": { logo: "A" }, "OP": { logo: "O" }, "ARB": { logo: "A" },
@@ -56,10 +53,11 @@ export async function GET(request) {
     }
 
     if (!MORALIS_API_KEY) {
-        // Log error on server but provide generic message to client for security
         console.error("MORALIS_API_KEY is not set in environment variables.");
         return NextResponse.json({ error: "Configuration Error: API Key Missing on server." }, { status: 500 });
     }
+
+    console.log("Moralis API Key Status: Successfully loaded from environment variable.");
 
     const headers = {
         'accept': 'application/json',
@@ -71,11 +69,13 @@ export async function GET(request) {
     let totalValue24hAgo = 0;
 
     try {
-        // 2. Loop through each supported chain to fetch token balances
-        for (const chainId of SUPPORTED_CHAIN_IDS) {
+        // --- CONCURRENT FETCHING using Promise.all ---
+
+        // 2. Map chain IDs to an array of promises
+        const fetchPromises = SUPPORTED_CHAIN_IDS.map(chainId => {
             const url = `https://deep-index.moralis.io/api/v2.2/wallets/${address}/tokens`
 
-            const response = await axios.get(url, {
+            return axios.get(url, {
                 headers: headers,
                 params: {
                     'chain': chainId,
@@ -84,9 +84,32 @@ export async function GET(request) {
                     'limit': 100
                 }
             })
+                // Attach the chainId to the successful response for processing later
+                .then(response => ({ chainId, data: response.data.result }))
+                .catch(error => {
+                    const chainName = CHAIN_ID_TO_NAME[chainId] || chainId;
 
-            // 3. Process the assets for the current chain
-            const chainAssets = response.data.result.map(item => {
+                    if (error.code === 'ENOTFOUND') {
+                        console.error(`ERROR: Network/DNS failure for ${chainName}. Domain deep-index.moralis.io could not be resolved.`);
+                    } else if (error.response && error.response.status === 401) {
+                        console.error(`ERROR: Authentication failure (401) for ${chainName}. Please check Moralis API Key.`);
+                    } else {
+                        console.warn(`Warning: Failed to fetch tokens for chain ${chainName}. Skipping. Error: ${error.message}`);
+                    }
+
+                    return { chainId, data: [] }; // Return empty array to keep data structure consistent
+                });
+        });
+
+        // 3. Wait for all chain requests to complete concurrently
+        const chainResponses = await Promise.all(fetchPromises);
+
+
+        // 4. Process the data from all chains
+        for (const response of chainResponses) {
+            const chainId = response.chainId;
+
+            const chainAssets = response.data.map(item => {
                 const balanceBigInt = BigInt(item.balance || 0)
 
                 if (balanceBigInt === 0n || item.possible_spam === true) return null
@@ -134,7 +157,7 @@ export async function GET(request) {
             allAssets = [...allAssets, ...chainAssets]
         }
 
-        // 4. Final total portfolio calculation
+        // 5. Final total portfolio calculation
         const changeUSD = currentTotalUSD - totalValue24hAgo
         let changePercent = 0
         if (totalValue24hAgo > 0.01) {
@@ -148,13 +171,14 @@ export async function GET(request) {
             totalChangePercent: changePercent,
         }
 
-        // 5. Return the final processed data
+        // 6. Return the final processed data
         return NextResponse.json(responseData);
 
     } catch (err) {
-        console.error("Server Error fetching token balances from Moralis:", err.response ? err.response.data : err.message);
+        // This catch block handles catastrophic errors not caught by individual promises
+        console.error("Server Error: Catastrophic failure outside individual chain fetches.", err);
 
-        let errorMessage = "Failed to fetch assets. Please check server configuration or try again."
+        let errorMessage = "An unexpected server error occurred. Please try again."
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
             errorMessage = "Authentication failed (401/403). Moralis API Key may be invalid."
         }

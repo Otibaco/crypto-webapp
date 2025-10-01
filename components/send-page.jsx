@@ -13,9 +13,11 @@ import Link from "next/link"
 import { cn } from "../lib/utils" // Utility for conditional class names
 import { truncateAddress } from '../lib/utils' // Utility for shortening addresses (assumed)
 
+
 // WAGMI/VIEM IMPORTS
-import { useAccount, useBalance, useSendTransaction, usePrepareSendTransaction, usePrepareWriteContract, useWriteContract, useWaitForTransaction } from 'wagmi'
+// import { useAccount, useBalance, useSendTransaction, usePrepareSendTransaction, usePrepareWriteContract, useWriteContract, useWaitForTransaction } from 'wagmi'
 import { parseUnits, isAddress, getAddress } from 'viem'
+import { useAccount, useBalance, useSendTransaction, useSimulateContract, useWriteContract, useWaitForTransaction } from 'wagmi'
 
 // --- CONFIGURATION: ERC-20 ABI and ASSET LIST ---
 const ERC20_ABI = [
