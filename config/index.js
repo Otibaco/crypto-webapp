@@ -1,20 +1,42 @@
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { mainnet, sepolia } from '@reown/appkit/networks'
+// wagmi.config.ts or config/wagmi.ts
 
-// Get projectId from https://dashboard.reown.com
-export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID || "b56e18d47c72ab683b10814fe9495694"
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import {
+  mainnet,
+  sepolia,
+  polygon,
+  bsc,
+  arbitrum,
+  optimism,
+  base,
+  zksync,
+  linea,
+} from '@reown/appkit/networks'
+
+// ✅ Project ID (from Reown Dashboard)
+export const projectId =
+  process.env.NEXT_PUBLIC_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
 
 if (!projectId) {
   throw new Error('Project ID is not defined')
 }
 
-// We are providing a curated list of only Ethereum networks (Mainnet and Sepolia Testnet).
-// This eliminates the "Select Chain" prompt for EVM wallets like MetaMask.
-export const networks = [sepolia,mainnet];
+// ✅ Focus on Ethereum + top Layer 2 + major sidechains
+export const networks = [
+  mainnet,   // Ethereum Mainnet
+  sepolia,   // Testnet
+  arbitrum,  // L2
+  optimism,  // L2
+  base,      // Coinbase L2
+  zksync,    // zk-rollup
+  linea,     // ConsenSys L2
+  polygon,   // Sidechain
+  bsc,       // Binance Smart Chain
+]
 
-// Set up the Wagmi Adapter for EVM networks.
+// ✅ Modular architecture for EVM networks
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
-  networks
+  networks,
 })
