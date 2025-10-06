@@ -1,80 +1,81 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback, useEffect } from "react"
 // Shadcn/UI Components (mocked or imported from assumed project structure)
 import { Card } from "./ui/card"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog" 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog"
 import { ArrowLeft, Scan, User, AlertCircle, Loader2, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 import { cn } from "../lib/utils" // Utility for conditional class names
-import { truncateAddress } from '../lib/utils' // Utility for shortening addresses (assumed)
-
+import { truncateAddress } from '../lib/utils' // Assuming this is correctly defined
 
 // WAGMI/VIEM IMPORTS
-// import { useAccount, useBalance, useSendTransaction, usePrepareSendTransaction, usePrepareWriteContract, useWriteContract, useWaitForTransaction } from 'wagmi'
-import { parseUnits, isAddress, getAddress } from 'viem'
-import { useAccount, useBalance, useSendTransaction, useSimulateContract, useWriteContract, useWaitForTransaction } from 'wagmi'
+import {
+    parseUnits,
+    isAddress,
+    getAddress,
+    TransactionExecutionError,
+} from 'viem'
+import {
+    useAccount,
+    useBalance,
+    useSendTransaction,
+    useSimulateContract, // NOW USED FOR BOTH NATIVE AND ERC-20
+    // useSimulateTransaction, // <--- REMOVED: Caused export error
+    useWriteContract,
+    useWaitForTransactionReceipt,
+} from 'wagmi'
 
-// --- CONFIGURATION: ERC-20 ABI and ASSET LIST ---
+
+// --- CONFIGURATION: ERC-20 ABI and ASSET LIST (Standard JS Object/Array) ---
 const ERC20_ABI = [
-  { type: 'function', name: 'transfer', inputs: [{ name: '_to', type: 'address' }, { name: '_value', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }], stateMutability: 'nonpayable' },
-  { type: 'function', name: 'decimals', inputs: [], outputs: [{ name: '', type: 'uint8' }], stateMutability: 'view' },
+    { type: 'function', name: 'transfer', inputs: [{ name: '_to', type: 'address' }, { name: '_value', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }], stateMutability: 'nonpayable' },
+    { type: 'function', name: 'decimals', inputs: [], outputs: [{ name: '', type: 'uint8' }], stateMutability: 'view' },
 ];
 
-/**
- * Multi-chain Asset Configuration:
- * This structure maps token symbols to their properties and specific contract addresses 
- * for the chains you support (identified by their decimal Chain ID).
- * * You MUST replace the placeholder addresses with the official contract addresses 
- * for the respective tokens on each supported network.
- */
 const ASSET_CONFIG = {
-  "ETH": { // Native Asset (address: null for all chains)
-    name: "Ethereum", 
-    decimals: 18, 
-    logo: "Ξ", 
-    color: "text-blue-400",
-    isNative: true,
-    addresses: { '1': null, '10': null, '137': null, '42161': null, '8453': null, '11155111': null }, // Mainnet, Optimism, Polygon, Arbitrum, Base, Sepolia
-  },
-  "USDT": {
-    name: "Tether USD",
-    decimals: 6,
-    logo: "$",
-    color: "text-green-500",
-    isNative: false,
-    addresses: {
-      '1': '0xdac17f958d2ceee5d6ff7da09aa7d98fa8c1bc29', // Mainnet USDT (Placeholder)
-      '137': '0xc2132d05a96860d5c06bc2419f4a643d2c88d902', // Polygon USDT (Placeholder)
-      '11155111': '0x...USDT_SEPOLIA_ADDRESS', // Sepolia Testnet USDT (Placeholder)
-    }
-  },
-  "USDC": {
-    name: "USD Coin",
-    decimals: 6,
-    logo: "¤", // Using a generic currency symbol
-    color: "text-blue-500",
-    isNative: false,
-    addresses: {
-      '1': '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Mainnet USDC (Placeholder)
-      '10': '0x7f5c764cbc14f9669b88837ca1490cca17c3160b', // Optimism USDC (Placeholder)
-      '11155111': '0x...USDC_SEPOLIA_ADDRESS', // Sepolia Testnet USDC (Placeholder)
-    }
-  },
+    "ETH": {
+        name: "Ethereum",
+        decimals: 18,
+        logo: "Ξ",
+        color: "text-blue-400",
+        isNative: true,
+        addresses: { '1': null, '10': null, '137': null, '42161': null, '8453': null, '11155111': null },
+    },
+    "USDT": {
+        name: "Tether USD",
+        decimals: 6,
+        logo: "$",
+        color: "text-green-500",
+        isNative: false,
+        addresses: {
+            '1': '0xdAC17F958D2ee5237c95619A80b8b20e0605a96A', // Mainnet USDT (Mocked for validity)
+            '137': '0xc2132d05a96860c6d5c06BC2419f4a643d2C88D2', // Polygon USDT (Mocked for validity)
+            '11155111': '0x742dC2524d7b27D9A440c94bA7E5F9c2776E08f4', // Sepolia Testnet USDT (Mocked for validity)
+        }
+    },
+    "USDC": {
+        name: "USD Coin",
+        decimals: 6,
+        logo: "¤",
+        color: "text-blue-500",
+        isNative: false,
+        addresses: {
+            '1': '0xA0b86991c6218b36c1d19D4a2e9eb0cE3606eB48', // Mainnet USDC (Mocked for validity)
+            '10': '0x7F5c764cBc14f9669b88837Ca1490Cca17C3160B', // Optimism USDC (Mocked for validity)
+            '11155111': '0x49fA44B663dD380482B7b43c6838Dcb80E341490', // Sepolia Testnet USDC (Mocked for validity)
+        }
+    },
 };
 
-// Simplified list for the Select dropdown
 const SUPPORTED_ASSET_SYMBOLS = Object.keys(ASSET_CONFIG);
 
 /**
  * Helper to get the full asset configuration including the chain-specific address.
- * @param {string} symbol - The token symbol (e.g., "USDT")
- * @param {number} chainId - The decimal chain ID of the connected network
- * @returns {object | null} The full asset object with the resolved 'address' property.
  */
 const getAssetConfig = (symbol, chainId) => {
     const config = ASSET_CONFIG[symbol];
@@ -82,9 +83,7 @@ const getAssetConfig = (symbol, chainId) => {
 
     const chainIdStr = String(chainId);
     const tokenAddress = config.addresses[chainIdStr];
-    
-    // Only return the asset if the contract address exists for the current chain, 
-    // or if it's a native asset (address is null).
+
     if (tokenAddress !== undefined) {
         return {
             symbol: symbol,
@@ -93,10 +92,10 @@ const getAssetConfig = (symbol, chainId) => {
             logo: config.logo,
             color: config.color,
             isNative: config.isNative,
-            address: tokenAddress,
+            address: tokenAddress ? getAddress(tokenAddress) : null, // Uses getAddress from viem
         };
     }
-    return null; // Asset not supported on the current chain
+    return null;
 }
 
 // Custom helper component for modal details
@@ -118,17 +117,17 @@ export function SendPage() {
     const [amount, setAmount] = useState("")
     const [errors, setErrors] = useState({})
     const [showConfirmModal, setShowConfirmModal] = useState(false)
-    const [txHash, setTxHash] = useState(null); // Used to track the transaction after broadcast
-    const [isSending, setIsSending] = useState(false); // Controls the send button text
+    const [txHash, setTxHash] = useState(null); // String | 'REJECTED' | 'BROADCAST_FAILED'
+    const [isSending, setIsSending] = useState(false); // True while awaiting wallet signature
+    const [simulateError, setSimulateError] = useState(null); // General error message for simulation failure
 
-    // Dynamically resolve the full asset configuration based on symbol and connected chain
+    // Dynamic configuration based on state
     const selectedAsset = useMemo(() => getAssetConfig(selectedSymbol, chainId), [selectedSymbol, chainId]);
 
     // --- WAGMI: REAL-TIME BALANCE FETCHING ---
     const { data: balanceData } = useBalance({
         address: senderAddress,
-        // If the token is ERC-20, use its address; if native, use undefined
-        token: selectedAsset?.address ? getAddress(selectedAsset.address) : undefined,
+        token: selectedAsset?.address || undefined,
         chainId: chainId,
         enabled: isConnected && !!senderAddress && !!selectedAsset,
         watch: true,
@@ -138,118 +137,232 @@ export function SendPage() {
     const currentBalanceDisplay = balanceData ? `${currentBalance.toFixed(4)}` : "0.0000";
 
     // --- VALIDATION & PREPARATION LOGIC ---
-    const isRecipientValid = recipient && isAddress(recipient);
-    const isValidAmount = Number(amount) > 0 && Number(amount) <= currentBalance;
-    const isTokenSend = selectedAsset && !selectedAsset.isNative; // True if it's an ERC-20 token
-    
-    const sendAmountBigInt = useMemo(() => {
-        if (!amount || !selectedAsset || !isValidAmount) return BigInt(0);
+    const normalizedRecipient = useMemo(() => {
+        if (!recipient) return null;
         try {
-            return parseUnits(amount, selectedAsset.decimals);
+            return isAddress(recipient) ? getAddress(recipient) : null;
+        } catch {
+            return null;
+        }
+    }, [recipient])
+
+    const isRecipientValid = !!normalizedRecipient;
+    const isValidAmount = Number(amount) > 0 && Number(amount) <= currentBalance;
+    const isTokenSend = selectedAsset && !selectedAsset.isNative;
+
+    const sendAmountBigInt = useMemo(() => {
+        if (!amount || !selectedAsset) return BigInt(0);
+        try {
+            const numAmount = Number(amount);
+            if (numAmount > 0) {
+                return parseUnits(amount, selectedAsset.decimals);
+            }
+            return BigInt(0);
         } catch (e) {
+            console.warn("Failed to parse amount to BigInt:", e);
             return BigInt(0);
         }
-    }, [amount, selectedAsset, isValidAmount]);
-    
+    }, [amount, selectedAsset]);
+
     const isPrepareEnabled = isConnected && isRecipientValid && isValidAmount && sendAmountBigInt > BigInt(0) && !!selectedAsset;
 
-    // 1. Prepare NATIVE Coin Transaction (ETH)
-    const { config: nativeConfig } = usePrepareSendTransaction({
-        to: recipient,
+    // 1. Simulate NATIVE Coin Transaction (ETH)
+    // <--- FIX APPLIED HERE: Using useSimulateContract for native transfer
+    const {
+        data: nativeSimulateData,
+        isLoading: isNativeSimulating,
+        error: nativeSimulateError,
+    } = useSimulateContract({ // <--- Use useSimulateContract
+        address: undefined,      // Explicitly undefined for native
+        abi: undefined,          // Explicitly undefined for native
+        functionName: undefined, // Explicitly undefined for native
+        args: undefined,         // Explicitly undefined for native
+        to: normalizedRecipient || undefined,
         value: sendAmountBigInt,
         chainId: chainId,
-        enabled: isPrepareEnabled && !isTokenSend,
+        query: {
+            enabled: isPrepareEnabled && !isTokenSend,
+            staleTime: 5000,
+        },
     });
 
-    // 2. Prepare ERC-20 Token Transaction (USDT, USDC, etc.)
-    const { config: tokenConfig } = usePrepareWriteContract({
-        address: selectedAsset?.address ? getAddress(selectedAsset.address) : undefined,
+    // 2. Simulate ERC-20 Token Transaction 
+    const {
+        data: tokenSimulateData,
+        isLoading: isTokenSimulating,
+        error: tokenSimulateError,
+    } = useSimulateContract({
+        address: selectedAsset?.address || undefined,
         abi: ERC20_ABI,
         functionName: 'transfer',
-        args: [recipient, sendAmountBigInt],
+        // In JavaScript, a placeholder address like '0x' might not be recognized as a valid Address type
+        // in viem's internal checks, but since `enabled` is gated by `isRecipientValid`, 
+        // `normalizedRecipient` will be a valid address when this is active.
+        args: [normalizedRecipient || '0x', sendAmountBigInt],
         chainId: chainId,
-        enabled: isPrepareEnabled && isTokenSend,
+        query: {
+            enabled: isPrepareEnabled && isTokenSend && !!selectedAsset?.address,
+            staleTime: 5000,
+        },
     });
 
-    // Select the appropriate config
-    const config = isTokenSend ? tokenConfig : nativeConfig;
-    const isReadyToSign = !!config.request;
+    // Select the appropriate config and error
+    const config = isTokenSend ? tokenSimulateData : nativeSimulateData;
+    const currentSimulateError = isTokenSend ? tokenSimulateError : nativeSimulateError;
 
-    // --- WAGMI: TRANSACTION EXECUTION ---
-    const { sendTransaction } = useSendTransaction();
-    const { writeContract } = useWriteContract();
+    const isReadyToSign = !!config?.request;
+    const isSimulating = isTokenSend ? isTokenSimulating : isNativeSimulating;
 
-    // Use the useWaitForTransaction hook to get final status
-    const { data: txReceipt, isLoading: isConfirming, isSuccess: isConfirmed, isError: isFailed } = useWaitForTransaction({
-        hash: txHash,
-        enabled: !!txHash && txHash !== 'REJECTED',
+    // --- EFFECT: Handle Simulation Errors ---
+    useEffect(() => {
+        if (isPrepareEnabled && currentSimulateError) {
+            console.error("Simulation Error:", currentSimulateError);
+            setSimulateError("Transaction simulation failed. Check for contract errors, gas, or token address support.");
+        } else if (isPrepareEnabled && !isSimulating && !isReadyToSign) {
+            setSimulateError("Transaction parameters invalid or missing.");
+        } else {
+            setSimulateError(null);
+        }
+    }, [isPrepareEnabled, currentSimulateError, isSimulating, isReadyToSign]);
+
+
+    // --- WAGMI: TRANSACTION EXECUTION HOOKS ---
+    const { sendTransactionAsync } = useSendTransaction();
+    const { writeContractAsync } = useWriteContract();
+
+    // Use the useWaitForTransactionReceipt hook to get final status
+    const {
+        data: txReceipt,
+        isLoading: isConfirming,
+        isSuccess: isConfirmed,
+        isError: isFailed
+    } = useWaitForTransactionReceipt({
+        hash: txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' ? txHash : undefined,
+        chainId: chainId,
+        query: { enabled: !!txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' },
     });
-    
+
     // --- TRANSACTION HANDLERS ---
-    
-    const validateForm = () => {
+
+    const validateForm = useCallback(() => {
         const newErrors = {};
+
         if (!isRecipientValid) {
             newErrors.recipient = "Invalid Ethereum address format (0x...)";
         }
         if (!selectedAsset) {
             newErrors.asset = `Asset not supported on the current chain (${chain?.name || 'Unknown'})`;
+        } else if (isTokenSend && !selectedAsset.address) {
+            newErrors.asset = `Token contract address is missing for this chain.`;
         }
         if (!isValidAmount) {
             newErrors.amount = Number(amount) > 0 ? `Amount exceeds your balance (${currentBalanceDisplay} ${selectedAsset?.symbol || ''})` : "Amount must be greater than zero";
         }
+
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+
+        return Object.keys(newErrors).length === 0 && !simulateError && isReadyToSign;
+    }, [isRecipientValid, selectedAsset, isTokenSend, isValidAmount, amount, currentBalanceDisplay, chain?.name, simulateError, isReadyToSign]);
+
 
     const handlePreviewTransaction = () => {
-        if (!isReadyToSign) {
-            // Force validation to show preparation errors from wagmi or local errors
-            validateForm();
-        }
-
         if (validateForm() && isReadyToSign) {
-            // Reset any previous status
             setTxHash(null);
             setIsSending(false);
             setShowConfirmModal(true);
+        } else {
+            validateForm();
         }
     };
 
     const handleCompleteTransaction = async () => {
-        if (!isReadyToSign) return;
-        
+        if (!isReadyToSign || !config?.request) return;
+
         setIsSending(true);
         setTxHash(null);
 
         try {
             let data;
+
+            // Use the spread operator to pass the prepared config object
             if (isTokenSend) {
-                data = await writeContract?.(tokenConfig.request);
+                // ERC-20: Use writeContractAsync
+                data = await writeContractAsync({ ...config.request });
             } else {
-                data = await sendTransaction?.(nativeConfig.request);
+                // Native: Use sendTransactionAsync
+                // The config.request here comes from useSimulateContract, but is structured correctly
+                data = await sendTransactionAsync({ ...config.request });
             }
-            
+
             if (data?.hash) {
                 setTxHash(data.hash);
             }
 
         } catch (e) {
             console.error("Transaction broadcast failed or rejected:", e);
-            setTxHash('REJECTED');
-        } finally {
-            setIsSending(false); 
+            setIsSending(false);
+
+            // Check for user rejection or broadcast failure
+            if (e instanceof TransactionExecutionError && e.message.includes('User rejected the request')) {
+                setTxHash('REJECTED');
+            } else {
+                setTxHash('BROADCAST_FAILED');
+            }
+
         }
     };
-    
+
     // --- MODAL RENDER LOGIC ---
 
     const getModalContent = () => {
-        const explorerUrl = txHash && txHash !== 'REJECTED' ? `${chain?.blockExplorers?.default.url}/tx/${txHash}` : null;
-        
-        // 1. Final Status (Confirmed/Failed)
-        if (txHash && txHash !== 'REJECTED' && (isConfirmed || isFailed)) {
+        const explorerUrl = txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' ? `${chain?.blockExplorers?.default.url}/tx/${txHash}` : null;
+
+        // 1. Final Status (Confirmed/Failed/Rejected/Broadcast Failed)
+        if (txHash) {
             const isSuccess = isConfirmed && txReceipt?.status === 'success';
+            const isReverted = isConfirmed && txReceipt?.status === 'reverted';
+            const isFinalFailure = isFailed || isReverted || txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED';
+            const isAwaitingConfirmation = txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' && (isSending || isConfirming || (!isFinalFailure && !isSuccess));
+
+
+            // Awaiting Confirmation/Signature
+            if (isAwaitingConfirmation) {
+                const statusText = isConfirming ? "Confirming on blockchain..." : "Awaiting wallet signature...";
+
+                return (
+                    <div className="text-center p-6 space-y-4">
+                        <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
+                        <h2 className="text-xl font-bold">{statusText}</h2>
+                        <p className="text-sm text-muted-foreground">
+                            {txHash ? `Hash: ${truncateAddress(txHash)}` : "Please check your wallet to sign the transaction."}
+                        </p>
+                        {explorerUrl && txHash && (
+                            <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
+                                View on {chain?.blockExplorers?.default.name || 'Explorer'}
+                            </a>
+                        )}
+                        <Button onClick={() => setShowConfirmModal(false)} variant="secondary" disabled={isConfirming} className="w-full mt-4">
+                            {txHash ? "Close Status" : "Cancel"}
+                        </Button>
+                    </div>
+                );
+            }
+
+            // Explicit Failures (User Rejected or Broadcast Failed)
+            if (txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED') {
+                const title = txHash === 'REJECTED' ? "Transaction Rejected" : "Broadcast Failed";
+                const message = txHash === 'REJECTED' ? "The transaction was explicitly rejected by your wallet." : "An error occurred broadcasting the transaction. Try again.";
+                return (
+                    <div className="text-center p-6 space-y-4">
+                        <XCircle className="h-16 w-16 text-red-500 mx-auto" />
+                        <h2 className="text-2xl font-bold">{title}</h2>
+                        <p className="text-muted-foreground">{message}</p>
+                        <Button onClick={() => setShowConfirmModal(false)} className="w-full mt-4">Close</Button>
+                    </div>
+                );
+            }
+
+            // Final Result (Confirmed on chain: Success/Reverted)
             return (
                 <div className="text-center p-6 space-y-4">
                     {isSuccess ? (
@@ -257,48 +370,24 @@ export function SendPage() {
                     ) : (
                         <XCircle className="h-16 w-16 text-red-500 mx-auto" />
                     )}
-                    <h2 className="text-2xl font-bold">{isSuccess ? "Transaction Successful!" : "Transaction Failed"}</h2>
-                    <p className="text-muted-foreground">{isSuccess ? "Your funds have been sent." : "The transaction failed or reverted."}</p>
+                    <h2 className="text-2xl font-bold">{isSuccess ? "Transaction Successful! 🎉" : "Transaction Failed ❌"}</h2>
+                    <p className="text-muted-foreground">{isSuccess ? "Your funds have been sent." : isReverted ? "The transaction failed (reverted) on-chain." : "The transaction failed or reverted."}</p>
                     {explorerUrl && (
                         <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
                             View on {chain?.blockExplorers?.default.name || 'Explorer'}
                         </a>
                     )}
-                    <Button onClick={() => setShowConfirmModal(false)} className="w-full mt-4">Done</Button>
+                    <Button onClick={() => {
+                        setShowConfirmModal(false);
+                        setTxHash(null);
+                        setRecipient("");
+                        setAmount("");
+                    }} className="w-full mt-4">Done</Button>
                 </div>
             );
         }
 
-        // 2. Awaiting Signature/Confirmation
-        if (txHash === 'REJECTED' || isSending || (txHash && txHash !== 'REJECTED')) {
-            if (txHash === 'REJECTED') {
-                return (
-                    <div className="text-center p-6 space-y-4">
-                        <XCircle className="h-16 w-16 text-red-500 mx-auto" />
-                        <h2 className="text-2xl font-bold">Transaction Rejected</h2>
-                        <p className="text-muted-foreground">The transaction was rejected by your wallet or encountered an immediate broadcast error.</p>
-                        <Button onClick={() => setShowConfirmModal(false)} className="w-full mt-4">Close</Button>
-                    </div>
-                )
-            }
-            
-            const statusText = isConfirming ? "Confirming on blockchain..." : "Awaiting signature...";
-
-            return (
-                <div className="text-center p-6 space-y-4">
-                    <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
-                    <h2 className="text-xl font-bold">{statusText}</h2>
-                    <p className="text-sm text-muted-foreground">
-                        {txHash ? `Hash: ${truncateAddress(txHash)}` : "Please check your wallet to sign the transaction."}
-                    </p>
-                    <Button onClick={() => setShowConfirmModal(false)} variant="secondary" disabled={isConfirming} className="w-full mt-4">
-                        {txHash ? "Close Status" : "Cancel"}
-                    </Button>
-                </div>
-            );
-        }
-
-        // 3. Initial Confirmation Screen
+        // 2. Initial Confirmation Screen
         return (
             <>
                 <DialogHeader>
@@ -310,18 +399,19 @@ export function SendPage() {
                     <DetailRow label="Asset" value={selectedAsset?.name || selectedSymbol} />
                     <DetailRow label="Amount" value={`${amount} ${selectedAsset?.symbol || ''}`} />
                     <DetailRow label="Network" value={chain?.name || 'Unknown'} />
+                    <DetailRow label="Est. Network Fee" value={`~0.0001 ${chain?.nativeCurrency.symbol || 'ETH'}`} />
                     <div className="pt-2 border-t border-dashed border-border flex justify-between items-center font-bold text-lg">
                         <span>Total</span>
                         <span>{amount} {selectedAsset?.symbol || ''}</span>
                     </div>
                 </div>
                 <DialogFooter className="flex flex-col sm:flex-col gap-2 pt-4">
-                    <Button 
-                        onClick={handleCompleteTransaction} 
+                    <Button
+                        onClick={handleCompleteTransaction}
                         disabled={!isReadyToSign || isSending}
                         className="w-full h-12 bg-primary hover:bg-primary/90 transition-colors"
                     >
-                        {isSending ? "Awaiting Signature..." : (isReadyToSign ? "Confirm and Send" : "Preparing Transaction...")}
+                        {isSending ? "Awaiting Signature..." : (isReadyToSign ? "Confirm and Send" : "Preparation Error")}
                     </Button>
                     <Button onClick={() => setShowConfirmModal(false)} variant="outline" className="w-full h-12">
                         Cancel
@@ -330,6 +420,28 @@ export function SendPage() {
             </>
         );
     };
+
+    // Determine main button state text
+    const mainButtonText = useMemo(() => {
+        if (!isConnected) return "Connect Wallet";
+        if (isSimulating) {
+            return <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing Transaction...</>;
+        }
+        if (Object.keys(errors).length > 0) {
+            return "Review Form Errors";
+        }
+        if (simulateError) {
+            return "Simulation Failed (Check Errors)";
+        }
+        if (isReadyToSign) {
+            return "Preview Transaction";
+        }
+        return "Enter Details";
+    }, [isConnected, isSimulating, simulateError, errors, isReadyToSign]);
+
+    // Determine if the main button should be disabled
+    const isMainButtonDisabled = !isConnected || !recipient || !selectedAsset || !amount || isSimulating || simulateError || !isReadyToSign;
+
 
     return (
         <>
@@ -351,7 +463,7 @@ export function SendPage() {
                         <p className="text-sm text-muted-foreground">Please connect your wallet to use the send feature.</p>
                     </Card>
                 )}
-                
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ pointerEvents: !isConnected ? 'none' : 'auto' }}>
                     {/* Left Column - Address and Token Selector */}
                     <div className="space-y-6 opacity-100 transition-opacity">
@@ -366,6 +478,7 @@ export function SendPage() {
                                     onChange={(e) => {
                                         setRecipient(e.target.value)
                                         setErrors((prev) => ({ ...prev, recipient: "" }))
+                                        setSimulateError(null)
                                     }}
                                     className={cn(
                                         "pr-20 transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
@@ -395,13 +508,14 @@ export function SendPage() {
                                 onValueChange={(value) => {
                                     setSelectedSymbol(value)
                                     setErrors((prev) => ({ ...prev, asset: "" }))
+                                    setSimulateError(null)
                                 }}
                             >
                                 <SelectTrigger className={cn(
                                     "transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
                                     errors.asset && "border-destructive",
                                 )}
-                                disabled={!isConnected}
+                                    disabled={!isConnected}
                                 >
                                     <SelectValue placeholder="Choose cryptocurrency">
                                         {selectedAsset && (
@@ -420,9 +534,8 @@ export function SendPage() {
                                 <SelectContent>
                                     {SUPPORTED_ASSET_SYMBOLS.map((symbol) => {
                                         const assetConfig = getAssetConfig(symbol, chainId);
-                                        // Only show assets that are supported on the current chain
                                         if (!assetConfig) return null;
-                                        
+
                                         return (
                                             <SelectItem key={symbol} value={symbol}>
                                                 <div className="flex items-center gap-3">
@@ -461,8 +574,10 @@ export function SendPage() {
                                     placeholder="0.00"
                                     value={amount}
                                     onChange={(e) => {
-                                        setAmount(e.target.value)
+                                        const value = e.target.value.replace(/[^\d.]/g, '')
+                                        setAmount(value)
                                         setErrors((prev) => ({ ...prev, amount: "" }))
+                                        setSimulateError(null)
                                     }}
                                     className={cn(
                                         "text-2xl font-bold text-center transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
@@ -509,18 +624,18 @@ export function SendPage() {
                         {/* Preview Transaction Button */}
                         <Button
                             onClick={handlePreviewTransaction}
+                            disabled={isMainButtonDisabled}
                             className={cn("w-full h-14 text-lg font-semibold gradient-purple-blue hover:opacity-90 transition-all duration-200 active:scale-95", {
-                                'opacity-50 cursor-not-allowed': !isConnected || !recipient || !selectedAsset || !amount || !isReadyToSign
+                                'opacity-50 cursor-not-allowed': isMainButtonDisabled
                             })}
-                            disabled={!isConnected || !recipient || !selectedAsset || !amount || !isReadyToSign}
                         >
-                            {isReadyToSign ? "Preview Transaction" : <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Preparing Transaction...</>}
+                            {mainButtonText}
                         </Button>
-                        
-                        {/* Preparation Error hint */}
-                        {!isReadyToSign && isConnected && recipient && selectedAsset && amount && (
-                            <p className="text-xs text-center text-red-400">
-                                Could not prepare transaction. Check network status, recipient, or balance.
+
+                        {/* Preparation Error hint (from simulation failure) */}
+                        {simulateError && (
+                            <p className="text-xs text-center text-destructive">
+                                <AlertCircle className="mr-1 h-3 w-3 inline" />{simulateError}
                             </p>
                         )}
                     </div>
@@ -529,13 +644,18 @@ export function SendPage() {
 
             {/* CONFIRMATION / STATUS MODAL */}
             <Dialog open={showConfirmModal} onOpenChange={(open) => {
-                // Only allow closing if no transaction is actively waiting for confirmation
-                if (!txHash) setShowConfirmModal(open);
+                if (!isSending && !isConfirming) {
+                    setShowConfirmModal(open);
+                    if (!open && !txHash) {
+                        setTxHash(null);
+                        setIsSending(false);
+                    }
+                }
             }}>
                 <DialogContent className="sm:max-w-[425px]">
                     {getModalContent()}
                 </DialogContent>
             </Dialog>
         </>
-    )
+    );
 }
