@@ -11,46 +11,51 @@ import axios from "axios" // Used for client-side fetching from the local API ro
 
 
 // --- CONFIGURATION CONSTANTS (Client-side) ---
-// Define supported chain IDs and their names for display
+
+// ✅ Same chains as in wagmi.config.ts
 const SUPPORTED_CHAIN_IDS = [
     '0x1',        // Ethereum Mainnet
-    '0xa',        // Optimism Mainnet
-    '0xa4b1',     // Arbitrum Mainnet
-    '0x89',       // Polygon Mainnet
-    '0x38',       // BNB Smart Chain (BSC)
-    '0xa86a',     // Avalanche C-Chain (AVAX)
-    '0xfa',       // Fantom Opera
-    '0x2105',     // Base Mainnet
     '0xaa36a7',   // Sepolia Testnet
+    '0xa4b1',     // Arbitrum
+    '0xa',        // Optimism
+    '0x2105',     // Base
+    '0x144',      // zkSync Era
+    '0xe708',     // Linea
+    '0x89',       // Polygon
+    '0x38',       // BNB Smart Chain
 ]
 
 const CHAIN_ID_TO_NAME = {
     '0x1': 'ETH',
-    '0xa': 'OPTIMISM',
+    '0xaa36a7': 'SEPOLIA',
     '0xa4b1': 'ARBITRUM',
+    '0xa': 'OPTIMISM',
+    '0x2105': 'BASE',
+    '0x144': 'ZKSYNC',
+    '0xe708': 'LINEA',
     '0x89': 'POLYGON',
     '0x38': 'BSC',
-    '0xa86a': 'AVALANCHE',
-    '0xfa': 'FANTOM',
-    '0x2105': 'BASE',
-    '0xaa36a7': 'SEPOLIA',
 }
 
-// Dummy mapping for colors/styling (Logo character is received from the API route)
+// ✅ Token visuals (native + stablecoins)
 const ASSET_VISUALS = {
-    "ETH": { color: "text-purple-400" },
-    "MATIC": { color: "text-purple-600" },
-    "BNB": { color: "text-yellow-400" },
-    "AVAX": { color: "text-red-500" },
-    "OP": { color: "text-red-400" },
-    "ARB": { color: "text-blue-400" },
-    "FTM": { color: "text-blue-300" },
-    "BASE": { color: "text-blue-500" },
-    "USDC": { color: "text-blue-500" },
-    "USDT": { color: "text-green-500" },
-    "DAI": { color: "text-yellow-300" },
-    "WETH": { color: "text-purple-400" },
-    "SEPOLIAETH": { color: "text-gray-400" },
+    'ETH': { color: 'text-purple-400' },
+    'SEPOLIAETH': { color: 'text-gray-400' },
+    'ARB': { color: 'text-blue-400' },
+    'OP': { color: 'text-red-400' },
+    'BASE': { color: 'text-blue-500' },
+    'ZKSYNC': { color: 'text-green-400' },
+    'LINEA': { color: 'text-indigo-400' },
+    'MATIC': { color: 'text-purple-600' },
+    'BNB': { color: 'text-yellow-400' },
+    'AVAX': { color: 'text-red-500' },
+    'FTM': { color: 'text-blue-300' },
+
+    // ✅ Stablecoins & wrapped assets
+    'USDC': { color: 'text-blue-500' },
+    'USDT': { color: 'text-green-500' },
+    'DAI': { color: 'text-yellow-300' },
+    'WETH': { color: 'text-purple-400' },
 }
 
 // Helper to get color styling from the client-side map
@@ -109,9 +114,9 @@ const useAllTokenBalances = (address) => {
             let userMessage = "Failed to fetch assets. Please try again."
             // If the error comes from the server, use its message
             if (err.response && err.response.data && err.response.data.error) {
-                 userMessage = err.response.data.error;
+                userMessage = err.response.data.error;
             } else if (err.message) {
-                 userMessage = err.message;
+                userMessage = err.message;
             }
 
             setError(userMessage)
@@ -150,6 +155,9 @@ export function DashboardPage() {
                 <p className="text-muted-foreground text-center">
                     Please connect your wallet to view your dashboard.
                 </p>
+               
+                    {/* AppKit handles the connection */}
+                    <appkit-button />
             </div>
         )
     }

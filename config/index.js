@@ -1,4 +1,4 @@
-// wagmi.config.ts or config/wagmi.ts
+// wagmi.config.ts
 
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import {
@@ -13,7 +13,7 @@ import {
   linea,
 } from '@reown/appkit/networks'
 
-// ✅ Project ID (from Reown Dashboard)
+// ✅ Your Reown project ID
 export const projectId =
   process.env.NEXT_PUBLIC_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
 
@@ -21,20 +21,20 @@ if (!projectId) {
   throw new Error('Project ID is not defined')
 }
 
-// ✅ Focus on Ethereum + top Layer 2 + major sidechains
+// ✅ Supported networks
 export const networks = [
-  mainnet,   // Ethereum Mainnet
-  sepolia,   // Testnet
-  arbitrum,  // L2
-  optimism,  // L2
-  base,      // Coinbase L2
-  zksync,    // zk-rollup
-  linea,     // ConsenSys L2
-  polygon,   // Sidechain
-  bsc,       // Binance Smart Chain
+  mainnet,    // Ethereum Mainnet
+  sepolia,    // Testnet
+  arbitrum,   // L2
+  optimism,   // L2
+  base,       // Coinbase L2
+  zksync,     // zk-Rollup
+  linea,      // ConsenSys zkEVM
+  polygon,    // Sidechain
+  bsc,        // Binance Smart Chain
 ]
 
-// ✅ Modular architecture for EVM networks
+// ✅ Initialize wagmi adapter
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
