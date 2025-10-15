@@ -1,17 +1,30 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import { ThemeProvider } from "next-themes"
 import "./globals.css";
 import { Suspense } from "react";
 
 
 
 
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata = {
+  title: "CryptoWallet",
+  description: "Modern cryptocurrency wallet with DeFi features",
+};
+
+
 export default async function RootLayout({
   children,
 }) {
-  const headersList = await headers();
-  const cookies = headersList.get("cookie");
+
 
   return (
     <html lang="en" className="dark">
@@ -21,8 +34,7 @@ export default async function RootLayout({
         cz-shortcut-listen="true"
       >
         
-        {/* Wrap the entire app with the ContextProvider */}
-        <ContextProvider cookies={cookies}>
+        
           <div className="min-h-screen bg-background">
             <main className="pb-20">
               <Suspense fallback={<div>Loading...</div>}>
@@ -30,8 +42,6 @@ export default async function RootLayout({
               </Suspense>
             </main>
           </div>
-        </ContextProvider>
-        <Analytics />
       </body>
     </html>
   );

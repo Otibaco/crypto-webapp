@@ -48,6 +48,6 @@
     "components/testimonials-section.jsx",
     "components/theme-provider.jsx",
     "components/parallax-section.jsx"
-  ],
+, "app/dashboard/layout.jsx"  ],
   "exclude": ["node_modules"]
 }
