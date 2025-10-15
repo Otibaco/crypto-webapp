@@ -1,9 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Suspense } from "react";
 import { headers } from "next/headers"; // ✅ import this
-import { ContextProvider } from "@/context/ContextProvider"; // ✅ make sure this path is correct
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export default async function RootLayout({ children }) {
-  const headersList = headers();
-  const cookies = headersList.get("cookie");
+
 
   return (
     <html lang="en" className="dark">
@@ -25,7 +22,6 @@ export default async function RootLayout({ children }) {
         className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased`}
         cz-shortcut-listen="true"
       >
-        <ContextProvider cookies={cookies}>
           <div className="min-h-screen bg-background">
             <main className="pb-20">
               <Suspense fallback={<div>Loading...</div>}>
@@ -33,8 +29,6 @@ export default async function RootLayout({ children }) {
               </Suspense>
             </main>
           </div>
-        </ContextProvider>
-        <Analytics />
       </body>
     </html>
   );
