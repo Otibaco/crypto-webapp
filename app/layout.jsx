@@ -5,40 +5,7 @@ import "./globals.css";
 import { Suspense } from "react";
 
 
-// Import the new ContextProvider component
-import ContextProvider from "../context";
-import { headers } from "next/headers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// export const metadata = {
-//   title: "CryptoWallet",
-//   description: "Modern cryptocurrency wallet with DeFi features",
-// };
-
-export const metadata = {
-  title: "2$weet - Professional Crypto Exchange & Trading Platform",
-  description:
-    "Trade cryptocurrencies with confidence on 2$weet. Professional trading platform with advanced features, security, and mobile app.",
-  keywords:
-    "cryptocurrency, crypto exchange, bitcoin, trading, blockchain, digital assets",
-  icons: {
-    icon: "/logo.jpg",        // Favicon (shows in browser tab)
-    shortcut: "/logo.jpg",    // Safari/old browsers
-    apple: "/logo.jpg",       // iOS home screen icon
-  },
-  openGraph: {
-    images: ["/logo.jpg"],    // For link previews (FB, Twitter, WhatsApp)
-  },
-};
 
 export default async function RootLayout({
   children,
