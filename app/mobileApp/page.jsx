@@ -74,7 +74,7 @@ export default function MobileAppPage() {
             <div className="relative">
               <div className="relative z-10">
                 <Image
-                  src="/images/mobile-trading.jpg"
+                  src="public/Homepage-Wallet-and-Portfolio.png"
                   alt="Mobile trading app"
                   width={600}
                   height={800}
