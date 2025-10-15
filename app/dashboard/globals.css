@@ -1,88 +1,89 @@
-/* Updated fonts to modern sans-serif for Web3 aesthetic */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated to Web3 futuristic color palette with blue/purple/teal theme */
-  --background: oklch(1 0 0); /* Pure white */
-  --foreground: oklch(0.11 0 0); /* #111827 equivalent */
-  --card: oklch(0.99 0.01 240); /* Soft blue-tinted white for cards */
-  --card-foreground: oklch(0.11 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.11 0 0);
-  --primary: oklch(0.55 0.15 264); /* #2563EB - Primary Blue */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.58 0.18 285); /* #7C3AED - Purple */
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.96 0.005 240); /* Light muted background */
-  --muted-foreground: oklch(0.61 0.01 240); /* #9CA3AF - Neutral Gray */
-  --accent: oklch(0.67 0.14 195); /* #06B6D4 - Teal Accent */
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.01 240);
-  --input: oklch(1 0 0);
-  --ring: oklch(0.55 0.15 264 / 0.5);
-  --chart-1: oklch(0.55 0.15 264); /* Primary Blue */
-  --chart-2: oklch(0.58 0.18 285); /* Purple */
-  --chart-3: oklch(0.67 0.14 195); /* Teal */
-  --chart-4: oklch(0.61 0.01 240); /* Neutral Gray */
-  --chart-5: oklch(0.96 0.005 240);
-  --radius: 0.75rem; /* Increased border radius for modern look */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.11 0 0);
-  --sidebar-primary: oklch(0.55 0.15 264);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.67 0.14 195);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.9 0.01 240);
-  --sidebar-ring: oklch(0.55 0.15 264 / 0.5);
+  /* Updated to crypto wallet dark theme with neon gradients */
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.7 0.25 280);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.15 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.6 0.25 180);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0.25 0);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.2 0 0);
+  --input: oklch(0.15 0 0);
+  --ring: oklch(0.7 0.25 280);
+  --chart-1: oklch(0.7 0.25 280);
+  --chart-2: oklch(0.6 0.25 180);
+  --chart-3: oklch(0.65 0.25 120);
+  --chart-4: oklch(0.75 0.25 320);
+  --chart-5: oklch(0.55 0.25 60);
+  --radius: 1rem;
+  --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.7 0.25 280);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.15 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.2 0 0);
+  --sidebar-ring: oklch(0.7 0.25 280);
+
+  /* Added custom gradient variables for neon effects */
+  --gradient-purple-blue: linear-gradient(135deg, oklch(0.7 0.25 280) 0%, oklch(0.65 0.25 240) 100%);
+  --gradient-green-cyan: linear-gradient(135deg, oklch(0.65 0.25 120) 0%, oklch(0.6 0.25 180) 100%);
+  --gradient-glow: 0 0 20px oklch(0.7 0.25 280 / 0.3);
 }
 
 .dark {
-  /* Updated dark mode colors for Web3 theme */
-  --background: oklch(0.11 0 0); /* #111827 - Dark Background */
-  --foreground: oklch(1 0 0); /* White text */
-  --card: oklch(0.19 0.01 240); /* #1F2937 equivalent - Dark cards */
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.11 0 0);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.55 0.15 264); /* #2563EB - Primary Blue */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.58 0.18 285); /* #7C3AED - Purple */
-  --secondary-foreground: oklch(1 0 0);
+  /* Dark mode uses same values since we're building a dark-first app */
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.7 0.25 280);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.15 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
   --muted: oklch(0.15 0 0);
-  --muted-foreground: oklch(0.61 0.01 240); /* #9CA3AF - Neutral Gray */
-  --accent: oklch(0.67 0.14 195); /* #06B6D4 - Teal Accent */
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.6 0.25 25);
-  --destructive-foreground: oklch(1 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.6 0.25 180);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0.25 0);
+  --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.2 0 0);
-  --input: oklch(0.19 0.01 240);
-  --ring: oklch(0.55 0.15 264 / 0.5);
-  --chart-1: oklch(0.55 0.15 264);
-  --chart-2: oklch(0.58 0.18 285);
-  --chart-3: oklch(0.67 0.14 195);
-  --chart-4: oklch(0.61 0.01 240);
-  --chart-5: oklch(0.15 0 0);
-  --sidebar: oklch(0.11 0 0);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.55 0.15 264);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.67 0.14 195);
-  --sidebar-accent-foreground: oklch(1 0 0);
+  --input: oklch(0.15 0 0);
+  --ring: oklch(0.7 0.25 280);
+  --chart-1: oklch(0.7 0.25 280);
+  --chart-2: oklch(0.6 0.25 180);
+  --chart-3: oklch(0.65 0.25 120);
+  --chart-4: oklch(0.75 0.25 320);
+  --chart-5: oklch(0.55 0.25 60);
+  --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.7 0.25 280);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.15 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.2 0 0);
-  --sidebar-ring: oklch(0.55 0.15 264 / 0.5);
+  --sidebar-ring: oklch(0.7 0.25 280);
 }
 
-
 @theme inline {
-  --font-sans: "Inter", var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: "Manrope", var(--font-geist-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -123,85 +124,100 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 transition-colors duration-300;
+    @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans transition-colors duration-300;
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Manrope", var(--font-geist-sans);
-    font-weight: 700;
-  }
-  /* Added typography scale matching Web3 design system */
-  h1 {
-    @apply text-3xl font-bold tracking-tight;
-  }
-  h2 {
-    @apply text-2xl font-semibold;
-  }
-  .caption {
-    @apply text-sm text-muted-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Updated animations for Web3 theme with blue/purple gradients */
+/* Added custom utility classes for gradients and glows */
 @layer utilities {
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+  .gradient-purple-blue {
+    background: linear-gradient(135deg, oklch(0.7 0.25 280) 0%, oklch(0.65 0.25 240) 100%);
+  }
+
+  .gradient-green-cyan {
+    background: linear-gradient(135deg, oklch(0.65 0.25 120) 0%, oklch(0.6 0.25 180) 100%);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 20px oklch(0.7 0.25 280 / 0.3);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px oklch(0.6 0.25 180 / 0.3);
+  }
+
+  /* Added missing glow-green class */
+  .glow-green {
+    box-shadow: 0 0 20px oklch(0.65 0.25 120 / 0.3);
   }
 
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
 
-  .animate-pulse-slow {
-    animation: pulse-slow 3s ease-in-out infinite;
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px oklch(0.7 0.25 280 / 0.3);
+    }
+    to {
+      box-shadow: 0 0 30px oklch(0.7 0.25 280 / 0.5);
+    }
   }
 
-  .parallax {
-    transform: translateZ(0);
-    will-change: transform;
+  .animate-count-up {
+    animation: countUp 0.8s ease-out;
   }
 
-  .gradient-primary {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  .gradient-accent {
-    background: linear-gradient(135deg, #06b6d4, #2563eb);
+  /* Added shake animation for form validation errors */
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
   }
-}
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
   }
-  50% {
-    transform: translateY(-20px);
-  }
-}
 
-@keyframes glow {
-  from {
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+  /* Added responsive utilities for better mobile/desktop layouts */
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4;
   }
-  to {
-    box-shadow: 0 0 30px rgba(37, 99, 235, 0.6);
-  }
-}
 
-@keyframes pulse-slow {
-  0%,
-  100% {
-    opacity: 1;
+  .tablet-grid {
+    @apply md:grid-cols-2 lg:grid-cols-3;
   }
-  50% {
-    opacity: 0.7;
+
+  .desktop-sidebar {
+    @apply lg:flex lg:flex-row lg:gap-6;
+  }
+
+  .mobile-stack {
+    @apply flex flex-col gap-4;
+  }
+
+  .desktop-side-by-side {
+    @apply lg:flex-row lg:items-center lg:gap-6;
   }
 }
