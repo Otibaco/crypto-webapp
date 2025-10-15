@@ -13,7 +13,7 @@ export function AppDownload() {
         <Button variant="outline" className="neon-border hover:bg-primary/10 p-0 h-auto bg-transparent" asChild>
           <a href="#" className="block">
             <Image
-              src="/images/app-store-badges.webp"
+              src="/play-store.webp"
               alt="Download on App Store and Google Play"
               width={200}
               height={60}

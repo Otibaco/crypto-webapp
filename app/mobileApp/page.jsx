@@ -64,7 +64,7 @@ export default function MobileAppPage() {
                   <div>
                     <h3 className="text-2xl font-bold mb-2">Seamless Sync</h3>
                     <p className="text-lg text-muted-foreground leading-relaxed">
-                      Your wallet state syncs automatically across all devices via WalletConnect and Reown AppKit.
+                      Your wallet state syncs automatically across all devices via WalletConnect
                     </p>
                   </div>
                 </CardContent>
@@ -74,7 +74,7 @@ export default function MobileAppPage() {
             <div className="relative">
               <div className="relative z-10">
                 <Image
-                  src="public/Homepage-Wallet-and-Portfolio.png"
+                  src="/Homepage-Wallet-and-Portfolio.png"
                   alt="Mobile trading app"
                   width={600}
                   height={800}

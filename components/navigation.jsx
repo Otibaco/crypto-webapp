@@ -49,7 +49,9 @@ export function Navigation() {
               <Wallet className="w-5 h-5" />
               Connect Wallet
             </Button>
+            
           </div>
+          {/* add this <appkit-button /> */}
 
           <div className="lg:hidden">
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className={undefined}>
