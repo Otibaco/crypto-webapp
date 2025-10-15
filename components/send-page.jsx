@@ -30,6 +30,7 @@ import {
     // 🎯 NEW IMPORT: useSwitchChain for smooth network change
     useSwitchChain, 
 } from 'wagmi'
+import { BottomNavigation } from "./bottom-navigation"
 
 // --- 🎯 SOLUTION STEP 1: EXPAND CONFIGURATION FOR ALL ASSETS AND CHAINS ---
 // -------------------------------------------------------------------------
@@ -797,6 +798,7 @@ export function SendPage() {
                         </div>
                     </div>
                 </div>
+                <BottomNavigation />
             </div>
 
             {/* Confirmation Modal */}

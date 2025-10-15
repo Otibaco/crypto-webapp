@@ -8,22 +8,22 @@ import { cn } from "../lib/utils"
 const navItems = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: Home,
   },
   {
     name: "Send",
-    href: "/send",
+    href: "/dashboard/send",
     icon: ArrowUp,
   },
   {
     name: "Swap",
-    href: "/swap",
+    href: "/dashboard/swap",
     icon: ArrowUpDown,
   },
   {
     name: "History",
-    href: "/history",
+    href: "/dashboard/history",
     icon: Clock,
   },
 ]

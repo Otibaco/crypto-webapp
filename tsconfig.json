@@ -22,6 +22,32 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "components/mobile-showcase.jsx",
+    "components/market-ticker.jsx",
+    "components/investors-section.jsx",
+    "components/how-it-works-section.jsx",
+    "components/hero-slider.jsx",
+    "components/hero-section.jsx",
+    "components/footer.jsx",
+    "components/features-section.jsx",
+    "components/faq-section.jsx",
+    "components/cta-section.jsx",
+    "components/crypto-prices-section.jsx",
+    "components/crypto-carousel.jsx",
+    "components/blog-highlights.jsx",
+    "components/app-download.jsx",
+    "components/partners-carousel.jsx",
+    "components/premium-footer.jsx",
+    "components/scroll-reveal.jsx",
+    "components/supported-coins.js",
+    "components/testimonials-section.jsx",
+    "components/theme-provider.jsx",
+    "components/parallax-section.jsx"
+  ],
   "exclude": ["node_modules"]
 }

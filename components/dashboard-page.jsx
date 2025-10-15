@@ -8,6 +8,7 @@ import { ArrowUp, ArrowDown, ArrowUpDown, ShoppingCart, TrendingUp, DollarSign }
 import Link from "next/link"
 import { useAccount, useChainId } from "wagmi"
 import axios from "axios" // Used for client-side fetching from the local API route
+import { BottomNavigation } from "../components/bottom-navigation"
 
 
 // --- CONFIGURATION CONSTANTS (Client-side) ---
@@ -373,6 +374,7 @@ export function DashboardPage() {
                     </div>
                 </Card>
             </Link>
+            <BottomNavigation />
         </div>
     )
 }

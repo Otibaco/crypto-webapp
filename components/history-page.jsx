@@ -9,6 +9,7 @@ import { Input } from "../components/ui/input"
 import Link from "next/link"
 import { cn } from "../lib/utils"
 import { format } from 'date-fns';
+import { BottomNavigation } from "./bottom-navigation"
 
 // Helper function to format value from Moralis (which is in WEI)
 const formatWeiValue = (value, chain) => {
@@ -252,6 +253,7 @@ export function HistoryPage({ initialTransactions, walletAddress }) {
                     Load More Transactions
                 </Button>
             )}
+            <BottomNavigation />
         </div>
     )
 }
