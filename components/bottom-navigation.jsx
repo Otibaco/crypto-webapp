@@ -63,7 +63,7 @@ export function BottomNavigation() {
                 {item.name}
               </span>
               {isActive && (
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-0.5 gradient-purple-blue rounded-full animate-glow" />
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-8 h-0.5 gradient-purple-blue rounded-full animate-glow" ></div>
               )}
             </Link>
           )
