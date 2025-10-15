@@ -3,10 +3,10 @@ import { Analytics } from "@vercel/analytics/react";
 
 import "./globals.css";
 import { Suspense } from "react";
-import { BottomNavigation } from "../components/bottom-navigation";
+import { BottomNavigation } from "../../components/bottom-navigation";
 
 // Import the new ContextProvider component
-import ContextProvider from "../context";
+import ContextProvider from "../../context";
 import { headers } from "next/headers";
 
 const geistSans = Geist({
