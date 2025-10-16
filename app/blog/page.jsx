@@ -17,7 +17,7 @@ export default function BlogPage() {
     date: "January 15, 2025",
     readTime: "8 min read",
     category: "Web3 Basics",
-    image: "/images/bitcoin-phone.jpg",
+    image: "/hands-on-desk.jpg",
   }
 
   const blogPosts = [
@@ -29,7 +29,7 @@ export default function BlogPage() {
       date: "January 12, 2025",
       readTime: "5 min read",
       category: "Security",
-      image: "/images/heroslider1.jpg",
+      image: "/hands-on-desk2.jpg",
     },
     {
       title: "The Rise of Ethereum DeFi",
@@ -39,7 +39,7 @@ export default function BlogPage() {
       date: "January 10, 2025",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/images/pc-trading.jpg",
+      image: "/laptop-image.jpg",
     },
     {
       title: "Smart Contracts Explained for Beginners",
@@ -49,7 +49,7 @@ export default function BlogPage() {
       date: "January 8, 2025",
       readTime: "4 min read",
       category: "Education",
-      image: "/images/mobile-trading.jpg",
+      image: "/investors.jpg",
     },
     {
       title: "MetaMask vs Trust Wallet: Which is Right for You?",
@@ -59,7 +59,7 @@ export default function BlogPage() {
       date: "January 5, 2025",
       readTime: "7 min read",
       category: "Wallet Guides",
-      image: "/images/hands-on-desk2.jpg",
+      image: "/investors-image2.jpg",
     },
     {
       title: "Gas Fees Demystified: A Complete Guide",
@@ -69,7 +69,7 @@ export default function BlogPage() {
       date: "January 3, 2025",
       readTime: "5 min read",
       category: "Education",
-      image: "/images/investor-on-phone.jpg",
+      image: "/office.jpg",
     },
     {
       title: "The Future of Non-Custodial Finance",
@@ -79,7 +79,7 @@ export default function BlogPage() {
       date: "December 30, 2024",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/images/heroslider3.jpg",
+      image: "/woman-on-phone.jpg",
     },
   ]
 
@@ -241,7 +241,7 @@ export default function BlogPage() {
       {/* NEWSLETTER */}
       <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-card/30 to-background">
         <div className="max-w-3xl mx-auto text-center">
-          <TrendingUp className="w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 mx-auto mb-6 sm:mb-8 text-primary" />
+          <TrendingUp className="hidden w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 mx-auto mb-6 sm:mb-8 text-primary" />
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6 glow-text">
             Stay Updated
           </h2>
@@ -253,6 +253,7 @@ export default function BlogPage() {
               type="email"
               placeholder="Enter your email"
               className="flex-1 px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg rounded-md bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+              data-has-listeners="true"
             />
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4">
               Subscribe
