@@ -36,32 +36,40 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-32 bg-gradient-to-b from-background to-card/50">
+    // Adjusted vertical padding for better mobile spacing
+    <section id="features" className="py-20 lg:py-32 bg-gradient-to-b from-background to-card/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black mb-6 glow-text">
+        <div className="text-center mb-12 lg:mb-20">
+          {/* Responsive Heading Size */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 glow-text text-balance">
             Why Choose <span className="gradient-text">2$weet</span>?
           </h2>
-          <p className="text-2xl text-muted-foreground max-w-4xl mx-auto text-pretty leading-relaxed">
+          {/* Responsive Paragraph Size and Width */}
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-normal">
             Built on Ethereum. Fully non-custodial. Prioritizing user control and privacy. Experience true decentralized
             finance.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {/* Responsive Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="crypto-card hover:scale-105 transition-all duration-300 group border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm"
+              className="crypto-card hover:scale-[1.02] transition-all duration-300 group border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm"
             >
-              <CardContent className="p-8">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                    <feature.icon className="h-8 w-8 text-primary" />
+              <CardContent className="p-6 sm:p-8">
+                <div className="flex items-start space-x-4 mb-4 sm:mb-6">
+                  <div className="p-3 sm:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                    <feature.icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold text-foreground">{feature.title}</h3>
+                  {/* Smaller Title on Mobile */}
+                  <h3 className="text-xl sm:text-2xl font-bold text-foreground mt-1">{feature.title}</h3>
                 </div>
-                <p className="text-lg text-muted-foreground text-pretty leading-relaxed">{feature.description}</p>
+                {/* Smaller Paragraph on Mobile */}
+                <p className="text-base sm:text-lg text-muted-foreground text-pretty leading-relaxed pl-10 sm:pl-12">
+                  {feature.description}
+                </p>
               </CardContent>
             </Card>
           ))}
