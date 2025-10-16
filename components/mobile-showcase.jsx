@@ -11,17 +11,17 @@ export function MobileShowcase() {
 
   const phoneScreens = [
     {
-      image: "/Homepage-Wallet-and-Portfolio.png",
+      image: "/crypto-mobile-app-Iphone14.png",
       title: "Advanced Trading",
       description: "Execute trades with professional-grade tools",
     },
     {
-      image: "/Homepage-Wallet-and-Portfolio.png",
+      image: "/crypto-mobile-app-Iphone14.png",
       title: "Real-time Analytics",
       description: "Monitor your portfolio with live market data",
     },
     {
-      image: "/Homepage-Wallet-and-Portfolio.png",
+      image: "/crypto-mobile-app-Iphone14.png",
       title: "Global Markets",
       description: "Access worldwide crypto markets 24/7",
     },
