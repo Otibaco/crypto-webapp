@@ -24,7 +24,7 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="text-3xl font-black gradient-text tracking-tight">
-              2$weet
+              <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
             </Link>
           </div>
 
