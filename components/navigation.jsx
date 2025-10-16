@@ -36,10 +36,10 @@ export function Navigation() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-card text-foreground border-b border-border shadow-sm transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Logo */}
           <Link href="/" className="text-3xl font-black gradient-text tracking-tight flex items-center">
-            <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
+            <img src="/logo2.png" alt="Logo" className="h-16 w-16 mr-1 inline-block" />
             <span className="text-2xl font-black gradient-text">2$weet</span>
           </Link>
 
