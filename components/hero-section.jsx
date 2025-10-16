@@ -69,7 +69,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 neon-border hover:bg-accent/10 bg-transparent transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+              className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 neon-border hover:text-[#00e200] bg-transparent transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
             >
               Learn More
             </Button>
