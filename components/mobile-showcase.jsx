@@ -109,9 +109,7 @@ export function MobileShowcase() {
                   }`}
                   style={{ zIndex: phoneScreens.length - Math.abs(index - currentPhone) }}
                 >
-                  <div className="relative w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] lg:rounded-[3rem] p-2 shadow-2xl">
-                    <div className="w-full h-full rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden bg-black">
-                    {/* <div className="w-full h-full rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden bg-black"> */}
+                    <div className="w-full h-full rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden bg-none">
                       <Image
                         src={screen.image || "/placeholder.svg"}
                         alt={screen.title}
@@ -119,7 +117,6 @@ export function MobileShowcase() {
                         className="object-cover"
                       />
                     </div>
-                  </div>
                 </div>
               ))}
             </div>
