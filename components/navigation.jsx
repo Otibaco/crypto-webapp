@@ -40,6 +40,7 @@ export function Navigation() {
           {/* Logo */}
           <Link href="/" className="text-3xl font-black gradient-text tracking-tight flex items-center">
             <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
+            <span className="text-2xl font-black gradient-text">2$weet</span>
           </Link>
 
           {/* Desktop Navigation */}
