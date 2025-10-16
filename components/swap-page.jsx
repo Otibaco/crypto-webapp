@@ -10,32 +10,70 @@ import Link from "next/link"
 import { cn } from "../lib/utils"
 import { BottomNavigation } from "./bottom-navigation"
 
-// 🚨 CRITICAL: YOU MUST CONFIGURE YOUR BACKEND ROUTES!
-// You need to set up a secure proxy/API route to handle 1inch calls
-// and hide your API key from the client side.
-// The routes below are placeholders for your Next.js API routes (e.g., pages/api/1inch-quote.js).
+// ==============================================================================
+// 🛑 PROFESSIONAL INTEGRATION: REOWN APP KIT IMPORTS
+// 
+// ⚠️ CRITICAL: Replace these placeholder hooks with the actual Reown SDK imports!
+// These function names are based on standard wallet/transaction SDKs (like Wagmi/AppKit).
+// ==============================================================================
 
-// ⚠️ PLACEHOLDER: Replace with your actual Reown AppKit wallet hook
-const useWallet = () => {
-    // In a real app, this would get the wallet connection status and address
-    const isConnected = true; // For demonstration, assume connected
-    const address = "0xYourConnectedWalletAddressGoesHere";
-    // NOTE: In a real app, 'currentChain' would be the wallet's currently selected network.
-    const currentChain = { id: 1, name: "Ethereum" }; // 1: Ethereum
-    const sendTransaction = (tx) => {
-        console.log("Simulating sendTransaction:", tx);
-        // In a real application, you would use your wallet provider (e.g., wagmi, web3modal)
-        // to sign and send the transaction object (tx).
-        alert("Transaction simulated! Check console for details. Implement actual wallet signing here.");
-        return Promise.resolve({ hash: '0xmockhash123' });
-    };
-    return { isConnected, address, currentChain, sendTransaction };
+// PLACEHOLDER: Use the actual Reown hook for wallet connection and chain info.
+const useAppKitAccount = () => {
+    // ⚠️ CRITICAL UPDATE: Set isConnected to false by default for the initial state.
+    const isConnected = false; // Mock: Assume user is NOT connected initially
+    const address = "0xYourConnectedWalletAddressGoesHere"; // Mock: User's connected address
+    const currentChain = { id: 1, name: "Ethereum" }; // Mock: Wallet's current network
+    return { isConnected, address, currentChain };
 };
+
+// PLACEHOLDER: Use the actual Reown hook for swap functionality.
+const useAppKitSwap = () => {
+    // NOTE: In a real Reown AppKit integration, these functions would be provided
+    // by the SDK and handle the quoting, approval (if needed), and transaction signing.
+    
+    // MOCK: Simulates fetching a quote from Reown's internal 1inch integration
+    const getQuote = async ({ fromTokenAddress, toTokenAddress, amount, chainId }) => {
+        console.log("Reown Swap: Fetching quote via AppKit...");
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
+
+        if (chainId !== '1') { // Mock error for non-Ethereum chain
+            throw new Error("Reown Swap Error: Only mainnet swaps are supported in this demo.");
+        }
+
+        // Mock Quote Data Structure (Simplified from real quote/transaction data)
+        // Ensure amount is processed as BigInt for high precision for toTokenAmount calculation
+        const inputAmount = BigInt(amount);
+        const toAmount = (inputAmount * BigInt(99) / BigInt(100)).toString(); // 1% loss mock
+
+        return {
+            toTokenAmount: toAmount, 
+            estimatedGas: "500000000000000", // Mock gas in wei
+            estimatedSlippage: "1", // Mock slippage
+        };
+    };
+
+    // MOCK: Simulates executing a swap using Reown's internal transaction handler
+    const executeSwap = async ({ fromTokenAddress, toTokenAddress, amount, address, chainId }) => {
+        console.log("Reown Swap: Executing swap via AppKit...");
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate execution delay
+
+        if (address === "0xYourConnectedWalletAddressGoesHere") {
+             // Mock success
+            return { hash: `0xreownhash${Math.random().toString(16).slice(2)}` };
+        } else {
+            throw new Error("Wallet rejected transaction or failed to execute.");
+        }
+    };
+    
+    return { getQuote, executeSwap };
+};
+
 
 /**
  * 💡 PROFESSIONAL INTEGRATION POINT: Balances Hook
  *
  * YOU MUST IMPLEMENT A SECURE WAY to fetch real token balances.
+ * This should use a secure API (like Reown's own Cloud API, Alchemy, or Etherscan).
  * The returned object should map: "chainId:tokenAddress" -> "balanceAsAString"
  */
 const useBalances = (address) => {
@@ -43,7 +81,7 @@ const useBalances = (address) => {
     const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
     useEffect(() => {
-        if (!address) {
+        if (!address || address === "0xYourConnectedWalletAddressGoesHere") { // Skip mock address
             setBalances({});
             return;
         }
@@ -52,8 +90,6 @@ const useBalances = (address) => {
             setIsLoadingBalances(true);
             try {
                 // 🛑 PROFESSIONAL STEP: Replace this with your actual secure API call!
-                // Example: const response = await fetch(`/api/user-balances?address=${address}`);
-                // const liveBalances = await response.json();
                 
                 // 🚀 TEMPORARY MOCK DATA for local testing. REMOVE after implementing LIVE FETCH.
                 const liveBalances = {
@@ -83,8 +119,7 @@ const useBalances = (address) => {
 };
 
 
-// 1inch API uses chain IDs for networks
-// The 'logo' is a placeholder character, replace with actual icons/images/URLs
+// Asset Definitions remain the same
 const ASSETS_BY_NETWORK = {
     "1": { // Ethereum Chain ID
         name: "Ethereum",
@@ -124,7 +159,8 @@ const ASSETS_BY_NETWORK = {
     },
 };
 
-// Utility to get the full asset data, including the live balance
+// Utility functions (getAssetData, getAmountInWei, fromWei) remain the same
+
 const getAssetData = (assetKey, balances) => {
     const [chainId, symbol] = assetKey.split(":");
     const network = ASSETS_BY_NETWORK[chainId];
@@ -143,11 +179,9 @@ const getAssetData = (assetKey, balances) => {
     };
 };
 
-// Utility for formatting amount to smallest unit (e.g., wei)
 const getAmountInWei = (amount, decimals = 18) => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
     try {
-        // Use BigInt for precision
         const multiplier = BigInt(10) ** BigInt(decimals);
         const [integer, fraction] = amount.toString().split('.');
         
@@ -160,12 +194,11 @@ const getAmountInWei = (amount, decimals = 18) => {
 
         return wei.toString();
     } catch (e) {
-        console.error("Error converting to wei:", e);
+        // console.error("Error converting to wei:", e);
         return "0";
     }
 };
 
-// Utility to convert from smallest unit to readable amount
 const fromWei = (amount, decimals = 18) => {
     if (!amount) return 0;
     try {
@@ -174,24 +207,29 @@ const fromWei = (amount, decimals = 18) => {
         // Divide and convert to a number for display (losing some precision is acceptable for UI)
         return Number(bigAmount) / Number(divisor);
     } catch (e) {
-        console.error("Error converting from wei:", e);
+        // console.error("Error converting from wei:", e);
         return 0;
     }
 };
 
+
 export function SwapPage() {
-    const { isConnected, address, currentChain, sendTransaction } = useWallet();
-    const { balances, isLoadingBalances } = useBalances(address);
+    // 🚀 STEP 1: Use Reown AppKit Hooks
+    // 🛑 isConnected will be FALSE by default, triggering the 'Disconnected' UI
+    const { isConnected, address, currentChain } = useAppKitAccount(); 
+    const { getQuote, executeSwap } = useAppKitSwap();
+    // Balances will be empty when not connected, which is fine
+    const { balances, isLoadingBalances } = useBalances(address); 
 
     const [fromAssetKey, setFromAssetKey] = useState("1:ETH");
     const [toAssetKey, setToAssetKey] = useState("1:USDC");
     const [fromAmount, setFromAmount] = useState("");
     const [toAmount, setToAmount] = useState("");
-    const [quoteData, setQuoteData] = useState(null);
+    const [quoteResult, setQuoteResult] = useState(null); 
     const [isLoadingQuote, setIsLoadingQuote] = useState(false);
     const [quoteError, setQuoteError] = useState(null);
     const [isSwapExecuting, setIsSwapExecuting] = useState(false);
-    const [isSwapping, setIsSwapping] = useState(false); // Added missing state for UI animation
+    const [isSwapping, setIsSwapping] = useState(false); 
 
     // Use Memo to ensure asset data is only recalculated when keys or balances change
     const fromAssetData = useMemo(() => getAssetData(fromAssetKey, balances), [fromAssetKey, balances]);
@@ -203,14 +241,22 @@ export function SwapPage() {
     const toChainId = toAssetData?.chainId;
     const isSameChain = fromChainId === toChainId;
 
-    // --- Core Logic: Fetch 1inch Quote (Debounced) ---
+    // --- Core Logic: Fetch Reown Quote (Debounced) ---
     useEffect(() => {
-        setQuoteData(null);
+        // Only run if connected and assets are selected
+        if (!isConnected || !fromAssetData || !toAssetData) {
+            setQuoteResult(null);
+            setQuoteError(null);
+            setToAmount("");
+            return;
+        }
+
+        setQuoteResult(null);
         setQuoteError(null);
         setToAmount("");
 
         // 1. Check for basic input validity
-        if (!fromAmount || Number(fromAmount) <= 0 || !fromAssetData || !toAssetData) {
+        if (!fromAmount || Number(fromAmount) <= 0) {
             return;
         }
 
@@ -224,26 +270,26 @@ export function SwapPage() {
             setIsLoadingQuote(true);
             
             try {
+                // Convert human-readable amount to the smallest unit (wei)
                 const amountInWei = getAmountInWei(fromAmount, fromAssetData.decimals);
 
-                // 🛑 INTEGRATION: Call your secure backend route
-                const quoteResponse = await fetch(`/api/1inch-quote?fromTokenAddress=${fromAssetData.address}&toTokenAddress=${toAssetData.address}&amount=${amountInWei}&chainId=${fromChainId}`);
+                // 🚀 STEP 2: Call Reown's built-in quote function
+                const quote = await getQuote({ 
+                    fromTokenAddress: fromAssetData.address, 
+                    toTokenAddress: toAssetData.address, 
+                    amount: amountInWei, 
+                    chainId: fromChainId 
+                });
 
-                const data = await quoteResponse.json();
-
-                if (!quoteResponse.ok) {
-                    throw new Error(data.details?.description || data.message || "Failed to fetch quote from 1inch.");
-                }
-
-                setQuoteData(data);
+                setQuoteResult(quote);
                 
                 // Convert the received amount (in smallest unit) back to a readable number
-                const receivedAmount = fromWei(data.toTokenAmount, toAssetData.decimals);
+                const receivedAmount = fromWei(quote.toTokenAmount, toAssetData.decimals);
                 setToAmount(receivedAmount.toFixed(6)); // Format for display
                 setQuoteError(null);
 
             } catch (error) {
-                console.error("1inch Quote Fetch Error:", error);
+                console.error("Reown Quote Fetch Error:", error);
                 setQuoteError(error.message || "Could not get a swap quote.");
                 setToAmount("0.0");
             } finally {
@@ -254,7 +300,7 @@ export function SwapPage() {
         const timeoutId = setTimeout(fetchQuote, 500); // Debounce quote request (500ms delay)
         return () => clearTimeout(timeoutId);
 
-    }, [fromAmount, fromAssetData, toAssetData, fromChainId, isSameChain]);
+    }, [fromAmount, fromAssetData, toAssetData, fromChainId, isSameChain, getQuote, isConnected]); // Added isConnected dependency
 
     // --- UI/UX: Handle Asset Swapping ---
     const handleSwapAssets = useCallback(() => {
@@ -276,7 +322,7 @@ export function SwapPage() {
         const inputAmountNumber = Number(fromAmount);
         const userBalanceNumber = Number(fromAssetData.balance);
 
-        if (!inputAmountNumber || !toAmount || quoteError || !quoteData || !address || isSwapExecuting) return;
+        if (!inputAmountNumber || !toAmount || quoteError || !quoteResult || !address || isSwapExecuting) return;
 
         // Final balance check before transaction
         if (inputAmountNumber > userBalanceNumber) {
@@ -294,31 +340,19 @@ export function SwapPage() {
         setIsSwapExecuting(true);
 
         try {
-            // 1. **REQUIRED PROFESSIONAL STEP: CHECK ERC-20 APPROVAL**
-            // For non-native tokens (not '0xeeee...'), you MUST:
-            // a) Call the 1inch 'allowance' endpoint (via backend) to check the spender's allowance.
-            // b) If allowance is too low, call the 1inch 'approve' endpoint (via backend) to get the TX data.
-            // c) Ask the user to sign the APPROVE transaction using `sendTransaction(approvalTx)`.
-            // d) Wait for the approval transaction to confirm before proceeding to the swap!
-            if (!fromAssetData.isNative) {
-                // Skipping implementation, but this is critical!
-                console.warn("⚠️ ERC-20 Approval Check Skipped. Must be implemented in production.");
-            }
-
-
-            // 2. **GET SWAP TRANSACTION DATA:** Call your backend route
-            // We use the exact amount from the quote to prevent slippage issues from recalculation
-            const swapResponse = await fetch(`/api/1inch-swap?fromTokenAddress=${fromAssetData.address}&toTokenAddress=${toAssetData.address}&amount=${quoteData.fromTokenAmount}&fromAddress=${address}&chainId=${fromChainId}&slippage=1`); // 1% slippage default
-
-            const swapData = await swapResponse.json();
-
-            if (!swapResponse.ok || !swapData.tx) {
-                throw new Error(swapData.details?.description || swapData.message || "Failed to get swap transaction data.");
-            }
-
-            // 3. **SEND TRANSACTION:** Use the wallet provider to sign and send the transaction
+            // 🚀 STEP 3: Execute Swap using Reown's function
+            
             alert(`Please confirm the swap of ${fromAmount} ${fromAssetData.symbol} in your wallet.`);
-            const txHash = await sendTransaction(swapData.tx);
+            
+            const txHash = await executeSwap({
+                fromTokenAddress: fromAssetData.address,
+                toTokenAddress: toAssetData.address,
+                // Use the exact amount from the quote to prevent slippage issues from recalculation
+                amount: getAmountInWei(fromAmount, fromAssetData.decimals), 
+                address: address, // The wallet address executing the swap
+                chainId: fromChainId,
+                slippage: 1 // Example slippage parameter (Reown's function handles this internally)
+            });
 
             console.log(`Swap successful! Transaction Hash: ${txHash.hash}`);
             alert(`Swap executed successfully! Transaction Hash: ${txHash.hash}`);
@@ -339,46 +373,53 @@ export function SwapPage() {
     };
     
     // --- UI Helpers ---
-    const isInsufficientBalance = fromAssetData && Number(fromAmount) > Number(fromAssetData.balance);
+    const isInsufficientBalance = isConnected && fromAssetData && Number(fromAmount) > Number(fromAssetData.balance);
     const isSwapDisabled = !fromAmount || !toAmount || isLoadingQuote || !!quoteError || isSwapExecuting || isInsufficientBalance || !isSameChain;
     const canSwap = isConnected && !isSwapDisabled;
     
     // Calculate the human-readable exchange rate
-    const exchangeRate = quoteData 
-        ? fromWei(quoteData.toTokenAmount, toAssetData.decimals) / fromWei(quoteData.fromTokenAmount, fromAssetData.decimals) 
+    const exchangeRate = quoteResult 
+        // Need to use BigInt math for precision before dividing, but for UI approximation, we use Number conversion
+        ? Number(fromWei(quoteResult.toTokenAmount, toAssetData.decimals)) / Number(fromWei(getAmountInWei(fromAmount, fromAssetData.decimals), fromAssetData.decimals))
         : 0;
 
     // Estimate Gas Fee (assuming gas is always in the native chain currency, e.g., ETH/BNB/MATIC)
-    const gasFeeNative = quoteData?.estimatedGas 
-        ? `${fromWei(quoteData.estimatedGas, 18).toFixed(6)} ${fromAssetData.networkName}` 
+    const gasFeeNative = quoteResult?.estimatedGas 
+        ? `${fromWei(quoteResult.estimatedGas, 18).toFixed(6)} ${fromAssetData.networkName}` 
         : "Estimating...";
 
     // Determine the button text based on state
     const getSwapButtonText = () => {
-        if (!isConnected) return "Connect Wallet";
+        // 🛑 This is the main check now
+        if (!isConnected) return "Connect Wallet (Reown AppKit)"; 
+        
         if (isSwapExecuting) return <><Loader2 className="h-5 w-5 animate-spin" /> Executing Swap...</>;
         if (isLoadingQuote) return "Fetching Best Price...";
         if (quoteError) return "Cannot Swap (See Error)";
         if (isInsufficientBalance) return `Insufficient ${fromAssetData.symbol} Balance`;
-        if (fromChainId !== currentChain.id.toString()) return `Switch to ${currentChain.name}`; // Action to switch chain
+        if (fromChainId !== currentChain.id.toString()) return `Switch Wallet to ${fromAssetData?.networkName || 'Network'}`; 
         if (isSwapDisabled) return "Enter Valid Amount";
         return `Swap ${fromAssetData?.symbol || 'Asset'} for ${toAssetData?.symbol || 'Asset'}`;
     }
 
-    // --- Component Render ---
+    // --- Component Render: Disconnected View ---
+    // If the user is NOT connected, show the minimal UI first
     if (!isConnected) {
         return (
             <div className="p-4 space-y-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
                 <h1 className="text-2xl font-bold">Swap</h1>
-                <Card className="p-8 text-center space-y-4">
-                    <p className="text-lg font-medium">Wallet Not Connected</p>
-                    <p className="text-muted-foreground">Please connect your wallet to view and use the swap interface.</p>
-                    <Button className="gradient-green-cyan">Connect Wallet (Reown AppKit)</Button>
+                <Card className="p-8 text-center space-y-4 shadow-lg">
+                    <p className="text-lg font-medium">Wallet Disconnected</p>
+                    <p className="text-muted-foreground">Please connect your wallet to use the send feature.</p>
+                    {/* 🛑 INTEGRATION: This button should trigger your Reown AppKit Modal */}
+                    <Button className="gradient-green-cyan w-full mt-4">Connect Wallet (Reown AppKit)</Button> 
                 </Card>
+                <BottomNavigation />
             </div>
         )
     }
 
+    // --- Component Render: Connected Swap Page UI ---
     return (
         <div className="p-4 space-y-6 max-w-4xl mx-auto">
             
@@ -562,10 +603,10 @@ export function SwapPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Minimum Received</span>
+                        <span className="text-sm text-muted-foreground">Minimum Received (1% Slippage)</span>
                         <span className="text-sm font-medium text-amber-500">
-                            {quoteData?.toTokenAmount // Calculate min received based on a 1% slippage (default)
-                                ? fromWei(BigInt(quoteData.toTokenAmount) * BigInt(99) / BigInt(100), toAssetData.decimals).toFixed(6)
+                            {quoteResult?.toTokenAmount // Calculate min received based on a 1% slippage (default)
+                                ? fromWei(BigInt(quoteResult.toTokenAmount) * BigInt(99) / BigInt(100), toAssetData.decimals).toFixed(6)
                                 : "N/A"
                             } {toAssetData.symbol}
                         </span>
