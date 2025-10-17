@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "../components/ui/button"
 import { Menu, X, Wallet } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import CustomAppKitButton from "../components/CustomAppKitButton"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -59,7 +60,7 @@ export function Navigation() {
 
             {/* AppKit Wallet Connect */}
             <div className="relative flex items-center">
-              <appkit-button />
+              <CustomAppKitButton />
             </div>
           </div>
 
@@ -118,7 +119,8 @@ export function Navigation() {
 
                 {/* Wallet Connect aligned with links */}
                 <div className="pt-4 border-t border-border">
-                  <appkit-button />
+                  <CustomAppKitButton />
+
                     
                 </div>
               </div>
