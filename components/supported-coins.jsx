@@ -17,6 +17,7 @@ const coins = [
   // Stablecoins (Ethereum EVM Based)
   { name: "Tether", image: "/tether-usdt-logo.png", symbol: "USDT", description: "Centralized stable digital dollar (ERC-20)" },
   { name: "USD Coin", image: "/usd-coin-usdc-logo.png", symbol: "USDC", description: "Centralized stable digital dollar (ERC-20)" },
+  { name: "Dai", image: "/dai-dai-logo.png", symbol: "DAI", description: "Decentralized stablecoin soft-pegged to the US Dollar" },
 ]
 
 export function SupportedCoins() {
