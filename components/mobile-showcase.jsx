@@ -70,12 +70,14 @@ export function MobileShowcase() {
             {/* Feature Cards Grid: Stacks on mobile/tablet, 2-col on small and up */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="crypto-card p-5 sm:p-6 rounded-xl">
-                <Smartphone className="h-10 w-10 sm:h-12 sm:w-12 text-primary mb-3 sm:mb-4" />
+                <Image src="/user-interface.png" alt="Intuitive Design" width={40} height={40} className="mb-3 sm:mb-4 md:size-16" />
+                {/* <Smartphone className="h-10 w-10 sm:h-12 sm:w-12 text-primary mb-3 sm:mb-4" /> */}
                 <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">Intuitive Design</h4>
-                <p className="text-sm sm:text-base text-muted-foreground">Clean, modern interface designed for both beginners and pros</p>
+                <p className="text-sm sm:text-base text-muted-foreground">Clean, modern interface designed for users</p>
               </div>
               <div className="crypto-card p-5 sm:p-6 rounded-xl">
-                <Star className="h-10 w-10 sm:h-12 sm:w-12 text-accent mb-3 sm:mb-4" />
+                <Image src="/good-rating.png" alt="Good Rating" width={40} height={40} className="mb-3 sm:mb-4 md:size-16" />
+                {/* <Star className="h-10 w-10 sm:h-12 sm:w-12 text-accent mb-3 sm:mb-4" /> */}
                 <h4 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">5-Star Rated</h4>
                 <p className="text-sm sm:text-base text-muted-foreground">Trusted by millions of users worldwide</p>
               </div>
