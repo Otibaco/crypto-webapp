@@ -13,30 +13,30 @@ export default function Footer() {
               Your gateway to decentralized finance on Ethereum. Non-custodial, transparent, and built for everyone.
             </p>
             <div className="flex gap-4">
-              <a
+              <Link
                 href="https://twitter.com/Emmanuelon42861"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
               >
                 <Twitter className="w-5 h-5 text-primary" />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="https://www.linkedin.com/in/emmanuel-onyekachi-2593342a8"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
               >
                 <Linkedin className="w-5 h-5 text-primary" />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="https://discord.com/invite/2sswpseurt"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
               >
                 <MessageCircle className="w-5 h-5 text-primary" />
-              </a>
+              </Link>
             </div>
           </div>
 
