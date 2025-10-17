@@ -56,11 +56,14 @@ export function HeroSection() {
           </p>
 
           {/* Button Group: Stacks on mobile, inline on sm (small screens/tablets) and up */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-12 px-4 sm:px-0 w-full max-w-3xl mx-auto">
 
-            {/* Wallet Connect*/}
-            <appkit-button />
+            {/* Wallet Connect */}
+            <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+              <appkit-button className="w-full sm:w-auto" />
+            </div>
 
+            {/* Learn More Button */}
             <Button
               size="lg"
               variant="outline"
@@ -68,8 +71,9 @@ export function HeroSection() {
             >
               Learn More
             </Button>
-            
+
           </div>
+
 
           <div className="mb-10 sm:mb-16">
             <AppDownload />
