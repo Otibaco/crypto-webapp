@@ -83,19 +83,28 @@ export function MobileShowcase() {
 
             {/* Responsive Buttons: Stacks on mobile, inline on small and up */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-6 animate-glow w-full sm:w-auto">
+              {/* <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-6 animate-glow w-full sm:w-auto"> */}
                 <Download className="hidden mr-2 h-5 w-5" />
                 {/* Download Now */}
                 <a href="#" className="block">
                   <Image
-                    src="/play-store.webp"
+                    src="/playstore-download.png"
                     alt="Download on App Store and Google Play"
                     width={200}
                     height={60}
                     className="rounded-md"
                   />
                 </a>
-              </Button>
+                <a href="#" className="block">
+                  <Image
+                    src="/appstore-download.png"
+                    alt="Download on App Store "
+                    width={200}
+                    height={60}
+                    className="rounded-md"
+                  />
+                </a>
+              {/* </Button> */}
               <Button size="lg" variant="outline" className="hidden text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-4 neon-border bg-transparent w-full sm:w-auto">
                 View Features
               </Button>

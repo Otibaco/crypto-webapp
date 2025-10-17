@@ -1,34 +1,41 @@
+import Image from "next/image"
 import { Card, CardContent } from "../components/ui/card"
 import { Wallet, Shield, Globe, Zap, Smartphone, Lock } from "lucide-react"
 
 const features = [
   {
     icon: Wallet,
+    iconT: "/blockchain.png",
     title: "One-Click Wallet Connection",
     description: "Connect with MetaMask, Trust Wallet, WalletConnect, and more. Access your Ethereum assets instantly.",
   },
   {
     icon: Shield,
+    iconT: "/server.png",
     title: "Non-Custodial Security",
     description: "You keep full control of your funds. Your keys, your crypto. We never hold or access your assets.",
   },
   {
     icon: Globe,
+    iconT: "/tap.png",
     title: "Decentralized & Transparent",
     description: "All transactions are on-chain and verifiable. No intermediaries, no hidden fees, just pure DeFi.",
   },
   {
     icon: Zap,
+    iconT: "/instant.png",
     title: "Instant Token Swaps",
     description: "Swap ERC-20 tokens instantly with on-chain confirmation powered by Ethereum smart contracts.",
   },
   {
     icon: Smartphone,
+    iconT: "/router-device.png",
     title: "Cross-Device Access",
     description: "Access your wallet from mobile or desktop. Sync seamlessly between devices with WalletConnect.",
   },
   {
     icon: Lock,
+    iconT: "/smart-contract.png",
     title: "Smart Contract Powered",
     description: "Built on Ethereum blockchain with audited smart contracts for maximum security and transparency.",
   },
@@ -61,7 +68,8 @@ export function FeaturesSection() {
               <CardContent className="p-6 sm:p-8">
                 <div className="flex items-start space-x-4 mb-4 sm:mb-6">
                   <div className="p-3 sm:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                    <feature.icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                    <feature.icon className="hidden h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                    <Image src={feature.iconT} alt={feature.title} width={40} height={40} className="size-16" />
                   </div>
                   {/* Smaller Title on Mobile */}
                   <h3 className="text-xl sm:text-2xl font-bold text-foreground mt-1">{feature.title}</h3>
