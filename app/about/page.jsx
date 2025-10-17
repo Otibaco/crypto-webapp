@@ -78,16 +78,17 @@ export default function AboutPage() {
           {/* Responsive Grid: 1-col on mobile, 2-col on tablet, 3-col on desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
             {[
-              { icon: Lock, title: "Non-Custodial", description: "You maintain full control of your funds. We never hold or have access to your private keys.", color: "text-primary" },
-              { icon: Shield, title: "Built on Ethereum", description: "Powered by audited smart contracts on the world's most secure blockchain", color: "text-secondary" },
-              { icon: Globe, title: "Transparent", description: "All transactions are on-chain and verifiable. No hidden fees or intermediaries.", color: "text-accent" },
-              { icon: Users, title: "Community-Driven", description: "Built by the community, for the community. Open innovation and collaboration.", color: "text-purple-400" }, // Assuming text-chart-4 maps to a color
-              { icon: Zap, title: "Instant", description: "Lightning-fast token swaps with on-chain confirmation in seconds", color: "text-primary" },
-              { icon: Heart, title: "User Privacy", description: "No KYC, no data collection. Your privacy is your right.", color: "text-accent" },
+              { icon: Lock, iconT:"/server.png", title: "Non-Custodial", description: "You maintain full control of your funds. We never hold or have access to your private keys.", color: "text-primary" },
+              { icon: Shield, iconT:"/server.png", title: "Built on Ethereum", description: "Powered by audited smart contracts on the world's most secure blockchain", color: "text-secondary" },
+              { icon: Globe, iconT:"/display.png", title: "Transparent", description: "All transactions are on-chain and verifiable. No hidden fees or intermediaries.", color: "text-accent" },
+              { icon: Users, iconT:"/grassroots.png", title: "Community-Driven", description: "Built by the community, for the community. Open innovation and collaboration.", color: "text-purple-400" }, // Assuming text-chart-4 maps to a color
+              { icon: Zap, iconT:"/instant.png", title: "Instant", description: "Lightning-fast token swaps with on-chain confirmation in seconds", color: "text-primary" },
+              { icon: Heart, iconT:"/protection.png", title: "User Privacy", description: "No KYC, no data collection. Your privacy is your right.", color: "text-accent" },
             ].map((value, index) => (
               <Card key={index} className="crypto-card text-center p-6 sm:p-8 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300">
                 <CardContent className="pt-6 sm:pt-8">
-                  <value.icon className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 ${value.color}`} />
+                  <value.icon className={`hidden w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 ${value.color}`} />
+                  <Image src={value.iconT} alt={value.title} width={40} height={40} className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 size-16" />
                   {/* Responsive Card Title Size */}
                   <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{value.title}</h3>
                   {/* Responsive Card Description Size */}

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import CustomAppKitButton from "../components/CustomAppKitButton"
 import { AppDownload } from "../components/app-download"
+import Link from "next/link"
 
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
@@ -66,13 +67,15 @@ export function HeroSection() {
             </div>
 
             {/* Learn More Button */}
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 neon-border hover:text-[#00e200] bg-transparent transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-            >
-              Learn More
-            </Button>
+            <Link href="/#features">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 neon-border hover:text-[#00e200] bg-transparent transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+              >
+                Learn More
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button></Link>
 
           </div>
 

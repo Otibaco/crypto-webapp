@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { ArrowDownUp, Info, Settings, Zap, Shield, Clock } from "lucide-react"
+import Image from "next/image"
 
 export default function ExchangePage() {
   return (
@@ -28,7 +29,7 @@ export default function ExchangePage() {
 
           {/* Main Content Grid: Stacks on mobile, splits on large screens */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-            
+
             {/* Swap Interface - Sticky only on large screens */}
             <Card className="crypto-card p-4 sm:p-6 lg:p-8 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm lg:sticky lg:top-24 order-1">
               <CardHeader className="flex flex-row items-center justify-between pb-4 sm:pb-6">
@@ -41,7 +42,7 @@ export default function ExchangePage() {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4 sm:space-y-5">
-                
+
                 {/* From Token */}
                 <div className="space-y-2">
                   <Label className="text-base sm:text-lg flex items-center justify-between">
@@ -121,12 +122,14 @@ export default function ExchangePage() {
             {/* Features & Info - Order 2 on mobile, next to swap on desktop */}
             <div className="space-y-6 sm:space-y-8 order-2">
               <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                
+
                 {/* Feature 1 */}
                 <Card className="crypto-card p-4 sm:p-6 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
                   <CardContent className="pt-4 sm:pt-6 flex items-start gap-3 sm:gap-4">
                     <div className="p-2 sm:p-3 rounded-lg bg-primary/10 flex-shrink-0">
-                      <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                      <Shield className="hidden w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                      <Image src="/server.png" alt="Non-Custodial" width={40} height={40} className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 size-16" />
+
                     </div>
                     <div>
                       {/* Responsive Heading Size */}
@@ -144,7 +147,8 @@ export default function ExchangePage() {
                 <Card className="crypto-card p-4 sm:p-6 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
                   <CardContent className="pt-4 sm:pt-6 flex items-start gap-3 sm:gap-4">
                     <div className="p-2 sm:p-3 rounded-lg bg-accent/10 flex-shrink-0">
-                      <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                      <Zap className="hidden w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                      <Image src="/instant.png" alt="Instant-Swaps" width={40} height={40} className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 size-16" />
                     </div>
                     <div>
                       {/* Responsive Heading Size */}
@@ -162,7 +166,8 @@ export default function ExchangePage() {
                 <Card className="crypto-card p-4 sm:p-6 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
                   <CardContent className="pt-4 sm:pt-6 flex items-start gap-3 sm:gap-4">
                     <div className="p-2 sm:p-3 rounded-lg bg-secondary/10 flex-shrink-0">
-                      <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
+                      <Clock className="hidden w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
+                      <Image src="/interest-rate.png" alt="Best Rates" width={40} height={40} className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 size-16" />
                     </div>
                     <div>
                       {/* Responsive Heading Size */}
@@ -246,8 +251,9 @@ export default function ExchangePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {/* Wallet Card 1 */}
             <Card className="crypto-card p-6 sm:p-8 text-center border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-2xl sm:text-3xl">🦊</span>
+              <div className="overflow-hidden rounded-full size-24 mx-auto bg-white flex items-center justify-center">
+                <span className="hidden text-2xl sm:text-3xl">🦊</span>
+                <Image src="/metamask-img.png" alt="MetaMask" width={40} height={40} className="size-16" />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-1">MetaMask</h3>
               <p className="text-sm text-muted-foreground">Most popular Ethereum wallet</p>
@@ -255,8 +261,9 @@ export default function ExchangePage() {
 
             {/* Wallet Card 2 */}
             <Card className="crypto-card p-6 sm:p-8 text-center border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-accent/10 flex items-center justify-center">
-                <span className="text-2xl sm:text-3xl">💼</span>
+              <div className="overflow-hidden rounded-full size-24 mx-auto bg-white  flex items-center justify-center">
+                <span className="hidden text-2xl sm:text-3xl">💼</span>
+                <Image src="/trust-wallet-img.jpeg" alt="Trust Wallet" width={40} height={40} className="size-16" />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-1">Trust Wallet</h3>
               <p className="text-sm text-muted-foreground">Secure mobile-first wallet</p>
@@ -264,8 +271,9 @@ export default function ExchangePage() {
 
             {/* Wallet Card 3 */}
             <Card className="crypto-card p-6 sm:p-8 text-center border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                <span className="text-2xl sm:text-3xl">🔗</span>
+              <div className="overflow-hidden rounded-full size-24 mx-auto bg-white flex items-center justify-center">
+                <span className="hidden text-2xl sm:text-3xl">🔗</span>
+                <Image src="/wallet-img.png" alt="WalletConnect" width={40} height={40} className="size-16" />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-1">WalletConnect</h3>
               <p className="text-sm text-muted-foreground">Connect any wallet securely</p>
