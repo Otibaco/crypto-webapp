@@ -15,7 +15,7 @@ const metadata = {
   description: 'Ethereum based dApp',
   url: 'https://crypto-webapp-phi.vercel.app',  
   // url: 'http://localhost:3000',
-  icons: ['/logo.png']
+  icons: ['/logo2.png']
 }
 
 // Create the modal

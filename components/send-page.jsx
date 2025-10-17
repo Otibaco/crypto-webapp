@@ -798,7 +798,6 @@ export function SendPage() {
                         </div>
                     </div>
                 </div>
-                <BottomNavigation />
             </div>
 
             {/* Confirmation Modal */}

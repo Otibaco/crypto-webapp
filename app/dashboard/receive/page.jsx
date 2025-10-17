@@ -18,7 +18,7 @@ export default function Receive({ searchParams }) {
 
   const handleClose = () => {
     // Go back to the dashboard/home page
-    router.push('/');
+    router.push('/dashboard');
   }
 
   return (
