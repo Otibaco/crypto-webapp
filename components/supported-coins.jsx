@@ -50,9 +50,9 @@ export function SupportedCoins() {
                 </div>
                 {/* Text sizes adjusted for mobile */}
                 <h3 className="text-lg sm:text-xl font-bold mb-1">{coin.name}</h3>
-                <p className="text-xs text-muted-foreground font-mono mb-1 sm:mb-2">{coin.symbol}</p>
+                <p className="hidden text-xs text-muted-foreground font-mono mb-1 sm:mb-2">{coin.symbol}</p>
                 {/* Description text size reduced */}
-                <p className="text-xs text-muted-foreground text-balance max-w-prose mx-auto">{coin.description}</p>
+                <p className="hidden text-xs text-muted-foreground text-balance max-w-prose mx-auto">{coin.description}</p>
               </CardContent>
             </Card>
           ))}

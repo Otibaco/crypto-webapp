@@ -11,21 +11,21 @@ const highlights = [
     excerpt: "Learn how WalletConnect enables secure connections between your wallet and dApps.",
     category: "Web3 Basics",
     date: "Jan 15, 2025",
-    image: "/images/bitcoin-phone.jpg",
+    image: "/Understanding-WalletConnect-Simple-Terms.jpeg",
   },
   {
     title: "How to Stay Safe in Web3",
     excerpt: "Essential security practices for protecting your crypto wallet and assets.",
     category: "Security",
     date: "Jan 12, 2025",
-    image: "/images/heroslider1.jpg",
+    image: "/web3-security.jpeg",
   },
   {
     title: "The Rise of Ethereum DeFi",
     excerpt: "Exploring how Ethereum became the foundation of decentralized finance.",
     category: "DeFi Trends",
     date: "Jan 10, 2025",
-    image: "/images/pc-trading.jpg",
+    image: "/The-Rise-of-Ethereum-DeFi.jpeg",
   },
 ]
 
