@@ -3,6 +3,7 @@ import Footer from "../../components/footer"
 import { Card, CardContent } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { AppDownload } from "../../components/app-download"
+import CustomAppKitButton from "../../components/CustomAppKitButton"
 import { Smartphone, Monitor, Tablet, Zap, Shield, RefreshCw, QrCode, Wallet } from "lucide-react"
 import Image from "next/image"
 
@@ -182,10 +183,7 @@ export default function MobileAppPage() {
               <p className="text-base sm:text-lg text-muted-foreground mb-8 leading-relaxed">
                 Start using 2$weet on any device by connecting your Ethereum wallet.
               </p>
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg sm:text-xl px-8 sm:px-12 py-4 sm:py-6 w-full">
-                <Wallet className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                Connect Wallet
-              </Button>
+              <CustomAppKitButton />
             </Card>
           </div>
         </div>
