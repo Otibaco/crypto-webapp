@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { Button } from "../components/ui/button"
+import Link from "next/link"
 
 export function AppDownload() {
   return (
@@ -10,17 +11,26 @@ export function AppDownload() {
       </div>
 
       <div className="flex gap-4">
-        <Button variant="outline" className="neon-border hover:bg-primary/10 p-0 h-auto bg-transparent" asChild>
-          <a href="#" className="block">
-            <Image
-              src="/play-store.webp"
-              alt="Download on App Store and Google Play"
-              width={200}
-              height={60}
-              className="rounded-md"
-            />
-          </a>
-        </Button>
+        {/* <Button variant="outline" className="neon-border hover:bg-primary/10 p-0 h-auto bg-transparent" asChild> */}
+        <Link href="#" className="block">
+          <Image
+            src="/playstore-download.png"
+            alt="Download on App Store and Google Play"
+            width={100}
+            height={40}
+            className="rounded-md p-1"
+          />
+        </Link>
+        <Link href="#" className="block">
+          <Image
+            src="/appstore-download.png"
+            alt="Download on App Store "
+            width={100}
+            height={40}
+            className="rounded-md p-1"
+          />
+        </Link>
+        {/* </Button> */}
       </div>
     </div>
   )

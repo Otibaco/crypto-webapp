@@ -31,18 +31,21 @@ export default function MobileAppPage() {
               {[
                 {
                   icon: <Smartphone className="w-8 h-8 text-primary" />,
+                  iconT: "/smartphone.png",
                   title: "Mobile-Optimized",
                   color: "primary",
                   text: "Access your Ethereum wallet from any mobile device. Smooth DeFi interaction optimized for touchscreens."
                 },
                 {
                   icon: <Monitor className="w-8 h-8 text-accent" />,
+                  iconT: "/monitor.png",
                   title: "Desktop Power",
                   color: "accent",
                   text: "Full-featured desktop experience with advanced trading tools and comprehensive portfolio analytics."
                 },
                 {
                   icon: <RefreshCw className="w-8 h-8 text-secondary" />,
+                  iconT: "/sync.png",
                   title: "Seamless Sync",
                   color: "secondary",
                   text: "Your wallet state syncs automatically across all devices via WalletConnect."
@@ -53,7 +56,8 @@ export default function MobileAppPage() {
                   className="crypto-card p-6 sm:p-8 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm"
                 >
                   <CardContent className="pt-6 flex items-start gap-4">
-                    <div className={`p-3 rounded-lg bg-${item.color}/10 flex-shrink-0`}>{item.icon}</div>
+                    <div className={`hidden p-3 rounded-lg bg-${item.color}/10 flex-shrink-0`}>{item.icon}</div>
+                    <Image src={item.iconT} alt={item.title} width={40} height={40} className="mb-3 sm:mb-4 md:size-16" />
                     <div>
                       <h3 className="text-xl sm:text-2xl font-bold mb-2">{item.title}</h3>
                       <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{item.text}</p>
@@ -95,18 +99,21 @@ export default function MobileAppPage() {
             {[
               {
                 icon: <Smartphone className="w-10 h-10 text-primary" />,
+                iconT: "/smartphone.png",
                 title: "Mobile",
                 text: "iOS and Android support via WalletConnect. Trade on the go with full wallet functionality.",
                 color: "primary",
               },
               {
                 icon: <Monitor className="w-10 h-10 text-accent" />,
+                iconT: "/monitor.png",
                 title: "Desktop",
                 text: "Full web app experience with MetaMask browser extension or WalletConnect desktop.",
                 color: "accent",
               },
               {
                 icon: <Tablet className="w-10 h-10 text-secondary" />,
+                iconT: "/tablet.png",
                 title: "Tablet",
                 text: "Optimized tablet interface combining mobile convenience with desktop power.",
                 color: "secondary",

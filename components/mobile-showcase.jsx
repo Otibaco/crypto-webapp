@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Button } from "../components/ui/button"
 import { Smartphone, Download, Star } from "lucide-react"
+import Link from "next/link"
 
 export function MobileShowcase() {
   const [mounted, setMounted] = useState(false)
@@ -86,7 +87,7 @@ export function MobileShowcase() {
               {/* <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-6 animate-glow w-full sm:w-auto"> */}
                 <Download className="hidden mr-2 h-5 w-5" />
                 {/* Download Now */}
-                <a href="#" className="block">
+                <Link href="#" className="block">
                   <Image
                     src="/playstore-download.png"
                     alt="Download on App Store and Google Play"
@@ -94,8 +95,8 @@ export function MobileShowcase() {
                     height={60}
                     className="rounded-md"
                   />
-                </a>
-                <a href="#" className="block">
+                </Link>
+                <Link href="#" className="block">
                   <Image
                     src="/appstore-download.png"
                     alt="Download on App Store "
@@ -103,7 +104,7 @@ export function MobileShowcase() {
                     height={60}
                     className="rounded-md"
                   />
-                </a>
+                </Link>
               {/* </Button> */}
               <Button size="lg" variant="outline" className="hidden text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-4 neon-border bg-transparent w-full sm:w-auto">
                 View Features
