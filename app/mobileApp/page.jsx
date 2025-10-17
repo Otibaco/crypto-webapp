@@ -123,11 +123,11 @@ export default function MobileAppPage() {
                 key={index}
                 className="crypto-card text-center p-8 sm:p-10 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm hover:scale-105 transition-all duration-300"
               >
-                <div
-                  className={`w-20 h-20 mx-auto mb-6 rounded-full bg-${item.color}/10 flex items-center justify-center`}
+                <div className={`hidden w-20 h-20 mx-auto mb-6 rounded-full bg-${item.color}/10 flex items-center justify-center`}
                 >
                   {item.icon}
                 </div>
+                <Image src={item.iconT} alt={item.title} width={40} height={40} className="mx-auto mb-3 sm:mb-4 md:size-16" />
                 <h3 className="text-xl sm:text-2xl font-bold mb-3">{item.title}</h3>
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{item.text}</p>
               </Card>
@@ -143,10 +143,10 @@ export default function MobileAppPage() {
             {/* Left Text */}
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 glow-text">
-                Powered by <span className="gradient-text">WalletConnect</span>
+                Powered by <span className="gradient-text">ReOwn</span>
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-                Connect your wallet securely across devices using WalletConnect protocol. Scan a QR code and you're ready to go.
+                Connect your wallet securely across devices using ReOwn WalletConnect protocol. Scan a QR code and you're ready to go.
               </p>
 
               <div className="space-y-6">
@@ -183,8 +183,9 @@ export default function MobileAppPage() {
 
             {/* Right Card */}
             <Card className="crypto-card p-8 sm:p-12 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm text-center">
-              <div className="w-28 sm:w-32 h-28 sm:h-32 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <Wallet className="w-14 h-14 sm:w-16 sm:h-16 text-primary" />
+              <div className="w-28 sm:w-32 h-28 sm:h-32 mx-auto mb-8 rounded-2xl bg-white flex items-center justify-center">
+                <Wallet className="hidden w-14 h-14 sm:w-16 sm:h-16 text-primary" />
+                <Image src="/reown-walletconnect.PNG" alt="Wallet" width={40} height={40} className="size-20 absolute" />
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold mb-4">Connect Your Wallet</h3>
               <p className="text-base sm:text-lg text-muted-foreground mb-8 leading-relaxed">
@@ -206,11 +207,11 @@ export default function MobileAppPage() {
 
           <div className="max-w-2xl mx-auto">
             <Card className="crypto-card p-8 sm:p-10 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm">
-              <h3 className="text-xl sm:text-2xl font-bold mb-6">Download Our App</h3>
+              <h3 className="hidden lg:blocktext-xl sm:text-2xl font-bold mb-6">Download Our App</h3>
+              <AppDownload />
               <p className="text-base sm:text-lg text-muted-foreground mb-8">
                 Available on iOS and Android. Experience the full power of DeFi in your pocket.
               </p>
-              <AppDownload />
             </Card>
           </div>
         </div>
