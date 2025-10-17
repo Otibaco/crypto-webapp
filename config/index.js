@@ -1,4 +1,4 @@
-// wagmi.config.ts
+// wagmi.config.js
 
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import {

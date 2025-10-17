@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button"
 import { ArrowRight, Wallet, Shield, Zap } from "lucide-react"
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import CustomAppKitButton from "../components/CustomAppKitButton"
 import { AppDownload } from "../components/app-download"
 
 export function HeroSection() {
@@ -60,7 +61,8 @@ export function HeroSection() {
 
             {/* Wallet Connect */}
             <div className="w-full sm:w-auto flex justify-center sm:justify-start">
-              <appkit-button className="w-full sm:w-auto" />
+              <CustomAppKitButton />
+
             </div>
 
             {/* Learn More Button */}
