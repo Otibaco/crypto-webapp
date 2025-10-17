@@ -36,10 +36,10 @@ export function Navigation() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-card text-foreground border-b border-border shadow-sm transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 sm:h-24">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="text-3xl font-black gradient-text tracking-tight flex items-center">
-            <img src="/logo2.png" alt="Logo" className="h-16 w-16 mr-1 inline-block" />
+            <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
             <span className="text-2xl font-black gradient-text">2$weet</span>
           </Link>
 
@@ -56,10 +56,11 @@ export function Navigation() {
                 {item.label}
               </Link>
             ))}
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground animate-glow text-lg px-6 py-2 flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-               <appkit-button />
-            </Button>
+
+            {/* AppKit Wallet Connect */}
+            <div className="relative flex items-center">
+              <appkit-button />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -87,40 +88,39 @@ export function Navigation() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 260, damping: 25 }}
-              className="absolute top-0 right-0 w-3/4 sm:w-1/2 h-full bg-background text-foreground border-l border-border shadow-2xl p-6 flex flex-col justify-between"
+              className="absolute top-0 right-0 w-3/4 sm:w-1/2 h-full bg-background text-foreground border-l border-border shadow-2xl p-6 flex flex-col"
             >
-              <div>
-                <div className="flex justify-between items-center mb-8">
-                  <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center">
-                    <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
-                    <span className="text-2xl font-black gradient-text">2$weet</span>
-                  </Link>
-                  <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                    <X className="h-6 w-6" />
-                  </Button>
-                </div>
-
-                <div className="flex flex-col space-y-6">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`text-lg transition-colors hover:text-primary ${
-                        pathname === item.href ? "text-primary font-semibold" : "text-foreground"
-                      }`}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
+              {/* Header Row */}
+              <div className="flex justify-between items-center mb-8">
+                <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center">
+                  <img src="/logo2.png" alt="Logo" className="h-8 w-8 mr-2 inline-block" />
+                  <span className="text-2xl font-black gradient-text">2$weet</span>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                  <X className="h-6 w-6" />
+                </Button>
               </div>
 
-              <div className="mt-10 border-t border-border pt-6">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-lg flex items-center justify-center gap-2">
-                  <Wallet className="w-5 h-5" />
-                  Connect Wallet
-                </Button>
+              {/* Links + Wallet Button in same scrollable area */}
+              <div className="flex flex-col space-y-6 overflow-y-auto">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`text-lg transition-colors hover:text-primary ${
+                      pathname === item.href ? "text-primary font-semibold" : "text-foreground"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+
+                {/* Wallet Connect aligned with links */}
+                <div className="pt-4 border-t border-border">
+                  <appkit-button />
+                    
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
-
-
+import ContextProvider from "../context";
+import { headers } from "next/headers";
 
 
 const geistSans = Geist({
@@ -22,12 +22,12 @@ export const metadata = {
   keywords:
     "cryptocurrency, crypto exchange, bitcoin, trading, blockchain, digital assets",
   icons: {
-    icon: "/logo.jpg",        // Favicon (shows in browser tab)
-    shortcut: "/logo.jpg",    // Safari/old browsers
-    apple: "/logo.jpg",       // iOS home screen icon
+    icon: "/logo2.png",        // Favicon (shows in browser tab)
+    shortcut: "/logo2.png",    // Safari/old browsers
+    apple: "/logo2.png",       // iOS home screen icon
   },
   openGraph: {
-    images: ["/logo.jpg"],    // For link previews (FB, Twitter, WhatsApp)
+    images: ["/logo2.png"],    // For link previews (FB, Twitter, WhatsApp)
   },
 };
 
@@ -35,17 +35,19 @@ export const metadata = {
 export default async function RootLayout({
   children,
 }) {
-
+  const headersList = await headers();
+  const cookies = headersList.get("cookie");
 
   return (
     <html lang="en" className="dark">
-      
+
       <body
         className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased`}
         cz-shortcut-listen="true"
       >
-        
-        
+
+        <ContextProvider cookies={cookies}>
+
           <div className="min-h-screen bg-background">
             <main className="pb-20">
               <Suspense fallback={<div>Loading...</div>}>
@@ -53,6 +55,7 @@ export default async function RootLayout({
               </Suspense>
             </main>
           </div>
+        </ContextProvider>
       </body>
     </html>
   );
