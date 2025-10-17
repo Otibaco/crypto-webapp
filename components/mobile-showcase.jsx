@@ -1,4 +1,5 @@
 "use client"
+"use client"
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
@@ -82,11 +83,20 @@ export function MobileShowcase() {
 
             {/* Responsive Buttons: Stacks on mobile, inline on small and up */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-4 animate-glow w-full sm:w-auto">
-                <Download className="mr-2 h-5 w-5" />
-                Download Now
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-6 animate-glow w-full sm:w-auto">
+                <Download className="hidden mr-2 h-5 w-5" />
+                {/* Download Now */}
+                <a href="#" className="block">
+                  <Image
+                    src="/play-store.webp"
+                    alt="Download on App Store and Google Play"
+                    width={200}
+                    height={60}
+                    className="rounded-md"
+                  />
+                </a>
               </Button>
-              <Button size="lg" variant="outline" className="text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-4 neon-border bg-transparent w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="hidden text-base sm:text-xl px-6 sm:px-8 py-3 sm:py-4 neon-border bg-transparent w-full sm:w-auto">
                 View Features
               </Button>
             </div>
@@ -99,24 +109,21 @@ export function MobileShowcase() {
               {phoneScreens.map((screen, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-1000 transform ${
-                    index === currentPhone
+                  className={`absolute inset-0 transition-all duration-1000 transform ${index === currentPhone
                       ? "opacity-100 scale-100 rotate-0"
                       : index === (currentPhone + 1) % phoneScreens.length
                         ? "opacity-60 scale-95 rotate-3 translate-x-4 lg:translate-x-8" // Adjusted translate for smaller screens
                         : "opacity-30 scale-90 -rotate-3 -translate-x-4 lg:-translate-x-8" // Adjusted translate for smaller screens
-                  }`}
+                    }`}
                   style={{ zIndex: phoneScreens.length - Math.abs(index - currentPhone) }}
                 >
-                  <div className="relative w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] lg:rounded-[3rem] p-2 shadow-2xl">
-                    <div className="w-full h-full rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden bg-black">
-                      <Image
-                        src={screen.image || "/placeholder.svg"}
-                        alt={screen.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                  <div className="w-full h-full rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden bg-none">
+                    <Image
+                      src={screen.image || "/placeholder.svg"}
+                      alt={screen.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 </div>
               ))}

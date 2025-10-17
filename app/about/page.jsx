@@ -48,7 +48,7 @@ export default function AboutPage() {
             {/* Image Section */}
             <div className="relative mt-8 lg:mt-0">
               <Image
-                src="/images/hands-on-desk2.jpg"
+                src="/defi.jpeg"
                 alt="Collaborative DeFi environment"
                 width={600}
                 height={400}

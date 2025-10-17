@@ -282,6 +282,11 @@
   box-shadow: 0 0 10px rgba(101, 163, 13, 0.3);
 }
 
+.neon-text {
+  color:  #00e200;
+  box-shadow: 0 0 10px rgba(101, 163, 13, 0.3);
+}
+
 .crypto-card {
   background: linear-gradient(135deg, oklch(0.15 0.03 264), oklch(0.18 0.03 264));
   border: 1px solid oklch(0.25 0.05 264);

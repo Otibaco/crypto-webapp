@@ -1,21 +1,22 @@
 import { Card, CardContent } from "../components/ui/card"
 
+
 const coins = [
-  { name: "Ethereum", symbol: "ETH", description: "The world's programmable blockchain and main EVM gas coin" },
-  { name: "BNB", symbol: "BNB", description: "The native coin for the BNB Chain" },
-  { name: "Polygon", symbol: "MATIC", description: "Native token of the Polygon ecosystem" },
-  { name: "Avalanche", symbol: "AVAX", description: "Native coin for the Avalanche C-Chain" },
-  { name: "Fantom", symbol: "FTM", description: "The native coin for the Fantom network" },
+  { name: "Ethereum", image: "/ethereum-eth-logo.png", symbol: "ETH", description: "The world's programmable blockchain and main EVM gas coin" },
+  { name: "BNB", image: "/bnb-bnb-logo.png", symbol: "BNB", description: "The native coin for the BNB Chain" },
+  { name: "Polygon", image: "/polygon-matic-logo.png", symbol: "MATIC", description: "Native token of the Polygon ecosystem" },
+  { name: "Avalanche", image: "/avalanche-avax-logo.png", symbol: "AVAX", description: "Native coin for the Avalanche C-Chain" },
+  { name: "Fantom", image: "/fantom-ftm-logo.png", symbol: "FTM", description: "The native coin for the Fantom network" },
 
   // Layer 2 / Ecosystem Tokens
-  { name: "Arbitrum", symbol: "ARB", description: "Governance token for the Arbitrum L2 ecosystem" },
-  { name: "Optimism", symbol: "OP", description: "Governance token for the Optimism L2 ecosystem" },
-  { name: "Gnosis", symbol: "GNO", description: "The native coin for Gnosis Chain" },
-  { name: "Solana", symbol: "SOL", description: "Native coin for the Solana blockchain (Often bridged to EVM DApps)" },
+  { name: "Arbitrum", image: "/arbitrum-arb-logo.png", symbol: "ARB", description: "Governance token for the Arbitrum L2 ecosystem" },
+  { name: "Optimism", image: "/optimism-ethereum-op-logo.png", symbol: "OP", description: "Governance token for the Optimism L2 ecosystem" },
+  { name: "Gnosis", image: "/gnosis-gno-gno-logo.png", symbol: "GNO", description: "The native coin for Gnosis Chain" },
+  { name: "Solana", image: "/solana-sol-logo.png", symbol: "SOL", description: "Native coin for the Solana blockchain (Often bridged to EVM DApps)" },
 
   // Stablecoins (Ethereum EVM Based)
-  { name: "Tether", symbol: "USDT", description: "Centralized stable digital dollar (ERC-20)" },
-  { name: "USD Coin", symbol: "USDC", description: "Centralized stable digital dollar (ERC-20)" },
+  { name: "Tether", image: "/tether-usdt-logo.png", symbol: "USDT", description: "Centralized stable digital dollar (ERC-20)" },
+  { name: "USD Coin", image: "/usd-coin-usdc-logo.png", symbol: "USDC", description: "Centralized stable digital dollar (ERC-20)" },
 ]
 
 export function SupportedCoins() {
@@ -43,8 +44,9 @@ export function SupportedCoins() {
             >
               <CardContent className="pt-4 sm:pt-6">
                 {/* Icon size adjusted for mobile */}
-                <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 sm:mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl sm:text-2xl font-bold text-primary">{coin.symbol.slice(0, 2)}</span>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center">
+                  <span className="hidden text-xl sm:text-2xl font-bold text-primary">{coin.symbol.slice(0, 2)}</span>
+                  <img src={coin.image} alt={coin.name} className="w-12 h-12 mx-auto mb-2" />
                 </div>
                 {/* Text sizes adjusted for mobile */}
                 <h3 className="text-lg sm:text-xl font-bold mb-1">{coin.name}</h3>
