@@ -2,6 +2,8 @@ import { Navigation } from "../../components/navigation"
 import Footer from "../../components/footer"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent } from "../../components/ui/card"
+import CustomAppKitButton from "../../components/CustomAppKitButton"
+
 import { Shield, Users, Globe, Lock, Zap, Heart } from "lucide-react"
 import Image from "next/image"
 
@@ -40,10 +42,7 @@ export default function AboutPage() {
                 Built on Ethereum, fully non-custodial, and prioritizing user control and privacy, we promote open
                 innovation and community-driven growth. Your keys, your crypto, your future.
               </p>
-              {/* Responsive Button Size */}
-              <Button size="lg" className="bg-primary hover:bg-primary/90 animate-glow text-lg px-6 py-3 sm:text-xl sm:px-8 sm:py-4 w-full sm:w-auto">
-                Connect Your Wallet
-              </Button>
+              <CustomAppKitButton />
             </div>
             {/* Image Section */}
             <div className="relative mt-8 lg:mt-0">
