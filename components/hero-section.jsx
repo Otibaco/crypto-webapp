@@ -28,7 +28,7 @@ export function HeroSection() {
           style={{ animationDelay: "2s" }}
         />
         <div className="absolute top-1/4 right-1/4 w-12 h-12 sm:w-16 sm:h-16 animate-float opacity-20">
-          <Image src="/images/bitcoin-coin.jpg" alt="Bitcoin" width={64} height={64} className="rounded-full" />
+          <Image src="/bitcoin-icons.png" alt="icons" width={64} height={64} className="rounded-full" />
         </div>
         <div
           className="absolute bottom-1/3 left-1/4 w-8 h-8 sm:w-12 sm:h-12 animate-float opacity-15"
@@ -42,9 +42,8 @@ export function HeroSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div
-          className={`transition-all duration-1000 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
+          className={`transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
         >
           {/* Responsive Heading Size */}
           <h1 className="text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance glow-text">
@@ -57,15 +56,14 @@ export function HeroSection() {
           </p>
 
           {/* Button Group: Stacks on mobile, inline on sm (small screens/tablets) and up */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-12">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 animate-glow transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto"
-            >
-              <Wallet className="h-5 w-5" />
-              Connect Wallet
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-12 px-4 sm:px-0 w-full max-w-3xl mx-auto">
+
+            {/* Wallet Connect */}
+            <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+              <appkit-button className="w-full sm:w-auto" />
+            </div>
+
+            {/* Learn More Button */}
             <Button
               size="lg"
               variant="outline"
@@ -73,7 +71,9 @@ export function HeroSection() {
             >
               Learn More
             </Button>
+
           </div>
+
 
           <div className="mb-10 sm:mb-16">
             <AppDownload />
