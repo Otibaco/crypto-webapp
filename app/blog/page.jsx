@@ -29,7 +29,7 @@ export default function BlogPage() {
       date: "January 12, 2025",
       readTime: "5 min read",
       category: "Security",
-      image: "/How to Stay Safe in Web3.jpg",
+      image: "/hands-on-desk2.jpg",
     },
     {
       title: "The Rise of Ethereum DeFi",
@@ -39,7 +39,7 @@ export default function BlogPage() {
       date: "January 10, 2025",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/The Rise of Ethereum DeFi.jpg",
+      image: "/laptop-image.jpg",
     },
     {
       title: "Smart Contracts Explained for Beginners",
@@ -49,7 +49,7 @@ export default function BlogPage() {
       date: "January 8, 2025",
       readTime: "4 min read",
       category: "Education",
-      image: "/Smart Contracts Explained for Beginners.jpg",
+      image: "/investors.jpg",
     },
     {
       title: "MetaMask vs Trust Wallet: Which is Right for You?",
@@ -59,7 +59,7 @@ export default function BlogPage() {
       date: "January 5, 2025",
       readTime: "7 min read",
       category: "Wallet Guides",
-      image: "/MetaMask vs Trust Wallet.jpg",
+      image: "/investors-image2.jpg",
     },
     {
       title: "Gas Fees Demystified: A Complete Guide",
@@ -69,7 +69,7 @@ export default function BlogPage() {
       date: "January 3, 2025",
       readTime: "5 min read",
       category: "Education",
-      image: "/Gas Fees Demystified.jpg",
+      image: "/office.jpg",
     },
     {
       title: "The Future of Non-Custodial Finance",
@@ -79,7 +79,7 @@ export default function BlogPage() {
       date: "December 30, 2024",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/The Future of Non-Custodial Finance.jpg",
+      image: "/woman-on-phone.jpg",
     },
   ]
 
