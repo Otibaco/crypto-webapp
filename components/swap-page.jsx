@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { ArrowLeft, ArrowUpDown, Settings, Info, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "../lib/utils"
-import { BottomNavigation } from "./bottom-navigation"
 
 // ==============================================================================
 // 🛑 PROFESSIONAL INTEGRATION: REOWN APP KIT IMPORTS
@@ -659,7 +658,6 @@ export function SwapPage() {
                     ))}
                 </div>
             </Card>
-            <BottomNavigation />
         </div>
     );
 }

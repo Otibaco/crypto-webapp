@@ -7,7 +7,6 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Copy, Check, AlertTriangle } from "lucide-react"
-import { BottomNavigation } from "./bottom-navigation";
 
 // The component now accepts props: walletAddress and chainName (and optional onClose)
 export function ReceivePage({ walletAddress, chainName, onClose }) {
@@ -130,7 +129,6 @@ export function ReceivePage({ walletAddress, chainName, onClose }) {
           </div>
         </div>
       </div>
-      <BottomNavigation />
     </div>
   )
 }

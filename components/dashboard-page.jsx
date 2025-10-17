@@ -358,7 +358,7 @@ export function DashboardPage() {
             {renderContent()}
 
             {/* Transaction History Shortcut */}
-            <Link href="/history" passHref>
+            <Link href="/dashboard/history" passHref>
                 <Card className="p-4 hover:bg-secondary/50 transition-colors duration-200 cursor-pointer">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -374,7 +374,6 @@ export function DashboardPage() {
                     </div>
                 </Card>
             </Link>
-            <BottomNavigation />
         </div>
     )
 }
