@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
-import { modal } from "../context" // adjust path if needed
+import React, { useState, useEffect } from "react"
+import { modal } from "../context" // adjust if path differs
 import { useAccount, useBalance, useDisconnect } from "wagmi"
 import { Wallet } from "lucide-react"
 import { Button } from "../components/ui/button"
@@ -12,10 +12,19 @@ export default function CustomAppKitButton() {
   const { disconnect } = useDisconnect()
   const [loading, setLoading] = useState(false)
 
+  // ✅ Sync wallet connection status to cookie
+  useEffect(() => {
+    if (isConnected) {
+      document.cookie = "wallet_connected=true; path=/; max-age=86400"
+    } else {
+      document.cookie = "wallet_connected=false; path=/; max-age=86400"
+    }
+  }, [isConnected])
+
   const handleConnect = async () => {
     try {
       setLoading(true)
-      await modal.open() // Opens Reown’s wallet connect logic (not their UI)
+      await modal.open() // Trigger Reown WalletConnect logic
     } catch (err) {
       console.error("Wallet connect error:", err)
     } finally {
@@ -26,6 +35,7 @@ export default function CustomAppKitButton() {
   const handleDisconnect = async () => {
     try {
       disconnect()
+      document.cookie = "wallet_connected=false; path=/; max-age=86400"
     } catch (err) {
       console.error("Disconnect error:", err)
     }

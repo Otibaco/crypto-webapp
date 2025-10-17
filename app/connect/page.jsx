@@ -3,11 +3,23 @@
 import { motion } from "framer-motion"
 import CustomAppKitButton from "../../components/CustomAppKitButton"
 import Link from "next/link"
+import { useAccount } from "wagmi"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function ConnectPage() {
+  const { isConnected } = useAccount()
+  const router = useRouter()
+
+  // ✅ Redirect to dashboard if already connected
+  useEffect(() => {
+    if (isConnected) {
+      router.push("/dashboard")
+    }
+  }, [isConnected, router])
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 text-center bg-background text-foreground">
-      {/* Animated container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -21,21 +33,19 @@ export default function ConnectPage() {
         </Link>
 
         {/* Heading */}
-        <h1 className="text-3xl sm:text-4xl font-bold">
-          Connect Your Wallet
-        </h1>
+        <h1 className="text-3xl sm:text-4xl font-bold">Connect Your Wallet</h1>
 
         {/* Subtext */}
         <p className="text-muted-foreground text-lg">
           Please connect your Ethereum wallet to access your dashboard and manage your assets securely.
         </p>
 
-        {/* Custom Wallet Connect Button */}
+        {/* Connect Button */}
         <div className="mt-4">
           <CustomAppKitButton />
         </div>
 
-        {/* Go Back Link */}
+        {/* Go Back */}
         <Link
           href="/"
           className="text-sm text-primary hover:underline mt-6"
