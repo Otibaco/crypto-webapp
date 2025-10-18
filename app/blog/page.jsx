@@ -69,7 +69,7 @@ export default function BlogPage() {
       date: "January 3, 2025",
       readTime: "5 min read",
       category: "Education",
-      image: "/Gas-Fees-Demystified.jpg",
+      image: "/Gas-Fees-Demystified.jpeg",
     },
     {
       title: "The Future of Non-Custodial Finance",
@@ -79,7 +79,7 @@ export default function BlogPage() {
       date: "December 30, 2024",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/The-Future-of-Non-Custodial-Finance.jpg",
+      image: "/Custodial-Finance.jpeg",
     },
   ]
 
