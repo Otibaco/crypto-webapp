@@ -59,7 +59,7 @@ export default function BlogPage() {
       date: "January 5, 2025",
       readTime: "7 min read",
       category: "Wallet Guides",
-      image: "/MetaMask-vs-Trust-Wallet.jpg",
+      image: "/Metamask-vs-Trust.png",
     },
     {
       title: "Gas Fees Demystified: A Complete Guide",
