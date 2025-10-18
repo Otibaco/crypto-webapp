@@ -185,7 +185,7 @@ export default function MobileAppPage() {
             <Card className="crypto-card p-8 sm:p-12 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm text-center">
               <div className="w-28 sm:w-32 h-28 sm:h-32 mx-auto mb-8 rounded-2xl bg-white flex items-center justify-center">
                 <Wallet className="hidden w-14 h-14 sm:w-16 sm:h-16 text-primary" />
-                <Image src="/reown-walletconnect.PNG" alt="Wallet" width={40} height={40} className="size-20 absolute" />
+                <Image src="/reown-walletconnect.png" alt="Wallet" width={40} height={40} className="size-20 absolute" />
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold mb-4">Connect Your Wallet</h3>
               <p className="text-base sm:text-lg text-muted-foreground mb-8 leading-relaxed">
