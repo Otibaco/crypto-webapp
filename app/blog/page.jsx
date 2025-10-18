@@ -17,7 +17,7 @@ export default function BlogPage() {
     date: "January 15, 2025",
     readTime: "8 min read",
     category: "Web3 Basics",
-    image: "/hands-on-desk.jpg",
+    image: "/understanding-web3.jpg",
   }
 
   const blogPosts = [
@@ -29,7 +29,7 @@ export default function BlogPage() {
       date: "January 12, 2025",
       readTime: "5 min read",
       category: "Security",
-      image: "/How-to-Stay-Safe-in-Web3.jpg",
+      image: "/security-asset.jpg",
     },
     {
       title: "The Rise of Ethereum DeFi",
@@ -39,7 +39,7 @@ export default function BlogPage() {
       date: "January 10, 2025",
       readTime: "6 min read",
       category: "DeFi Trends",
-      image: "/The-Rise-of-Ethereum-DeFi.jpg",
+      image: "/ti-coin.jpg",
     },
     {
       title: "Smart Contracts Explained for Beginners",
@@ -49,7 +49,7 @@ export default function BlogPage() {
       date: "January 8, 2025",
       readTime: "4 min read",
       category: "Education",
-      image: "/Smart-Contracts-Explained-for-Beginners.jpg",
+      image: "/markus.jpg",
     },
     {
       title: "MetaMask vs Trust Wallet: Which is Right for You?",
@@ -69,7 +69,7 @@ export default function BlogPage() {
       date: "January 3, 2025",
       readTime: "5 min read",
       category: "Education",
-      image: "/Gas-Fees-Demystified.jpeg",
+      image: "/gas-fee.jpg",
     },
     {
       title: "The Future of Non-Custodial Finance",
@@ -189,7 +189,7 @@ export default function BlogPage() {
                 className="crypto-card overflow-hidden hover:scale-[1.02] transition-transform duration-300 border-0 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm"
               >
                 <div className="relative h-56 sm:h-64">
-                  <Image src={post.image} alt={post.title} fill className="object-cover" />
+                  <Image src={post.image} alt={post.title} fill className="object-contain" />
                   <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
                     <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-3 py-1">
                       {post.category}
