@@ -76,7 +76,7 @@ const ASSET_VISUALS_SYMBOLS = {
   "SEPOLIAETH": { logo: "/icons/eth.svg" },  // Use ETH icon for Sepolia ETH
 }
 
-// CoinGecko symbol -> id map for quick lookups
+// CoinGecko symbol -> primary id map for quick lookups
 const COINGECKO_SYMBOL_MAP = {
   ETH: 'ethereum',
   SEPOLIAETH: 'ethereum',
@@ -97,6 +97,13 @@ const COINGECKO_SYMBOL_MAP = {
   WBNB: 'wbnb',
   WAVAX: 'wrapped-avax',
   WFTM: 'wrapped-fantom'
+}
+
+// Aliases for CoinGecko ids when one id may be returned under different names (fallbacks)
+const COINGECKO_ALIASES = {
+  // MATIC historically appears as both 'polygon' and 'matic-network' in some responses/clients
+  MATIC: ['polygon', 'matic-network'],
+  POL: ['polygon', 'matic-network']
 }
 
 // Map chainId to CoinGecko platform identifiers for contract queries
@@ -299,13 +306,31 @@ export async function GET(request) {
       }
 
       for (const asset of allAssets) {
-        const id = COINGECKO_SYMBOL_MAP[asset.symbol]
-        if (id && priceData[id]) {
-          const p = priceData[id].usd || 0
-          const ch = typeof priceData[id].usd_24h_change === 'number' ? priceData[id].usd_24h_change : 0
-          asset.price = p
-          asset.totalValue = (asset.balance || 0) * p
-          asset.change = `${ch > 0 ? '+' : ''}${ch.toFixed(2)}%`
+        const primaryId = COINGECKO_SYMBOL_MAP[asset.symbol];
+        let entry = null;
+
+        // Try primary id first
+        if (primaryId && priceData[primaryId]) {
+          entry = priceData[primaryId];
+        }
+
+        // Fallback to aliases (e.g., 'matic-network') if primary missing
+        if (!entry && COINGECKO_ALIASES[asset.symbol]) {
+          for (const altId of COINGECKO_ALIASES[asset.symbol]) {
+            if (priceData[altId]) {
+              entry = priceData[altId];
+              console.log(`Using alias CoinGecko id '${altId}' for symbol ${asset.symbol}`);
+              break;
+            }
+          }
+        }
+
+        if (entry) {
+          const p = entry.usd || 0;
+          const ch = typeof entry.usd_24h_change === 'number' ? entry.usd_24h_change : 0;
+          asset.price = p;
+          asset.totalValue = (asset.balance || 0) * p;
+          asset.change = `${ch > 0 ? '+' : ''}${ch.toFixed(2)}%`;
         }
       }
     }
