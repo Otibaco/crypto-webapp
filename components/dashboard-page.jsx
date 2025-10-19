@@ -336,7 +336,7 @@ export function DashboardPage() {
                 </Link>
                 <Link
                     href={{
-                        pathname: "/receive",
+                        pathname: "/dashboard/receive",
                         query: {
                             address: address, // Pass the connected wallet address
                             chain: currentChainName // Pass the current connected chain name
