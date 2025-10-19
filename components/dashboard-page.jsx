@@ -237,7 +237,15 @@ export function DashboardPage() {
                                     <div
                                         className={`w-10 h-10 rounded-full bg-secondary flex items-center justify-center glow-purple ${asset.color}`}
                                     >
-                                        <span className="text-lg font-bold">{asset.logo}</span>
+                                        <img
+                                            src={asset.iconUrl || "/fallback-crypto-icon.png"}
+                                            alt={`${asset.symbol} icon`}
+                                            className="w-6 h-6"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = "/fallback-crypto-icon.png";
+                                            }}
+                                        />
                                     </div>
                                     <div>
                                         <p className="font-semibold">{asset.symbol}</p>

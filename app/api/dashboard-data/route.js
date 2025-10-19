@@ -61,11 +61,19 @@ const CHAIN_ID_TO_NAME = {
 }
 
 const ASSET_VISUALS_SYMBOLS = {
-  "ETH": { logo: "Ξ" }, "MATIC": { logo: "P" }, "BNB": { logo: "B" },
-  "AVAX": { logo: "A" }, "OP": { logo: "O" }, "ARB": { logo: "A" },
-  "FTM": { logo: "F" }, "BASE": { logo: "B" }, "USDC": { logo: "$" },
-  "USDT": { logo: "$" }, "DAI": { logo: "Ð" }, "WETH": { logo: "Ξ" },
-  "SEPOLIAETH": { logo: "S" },
+  "ETH": { logo: "/ethereum-eth-logo.png" },
+  "MATIC": { logo: "/polygon-matic-logo.png" },
+  "BNB": { logo: "/bnb-bnb-logo.png" },
+  "AVAX": { logo: "/avalanche-avax-logo.png" },
+  "OP": { logo: "/optimism-ethereum-op-logo.png" },
+  "ARB": { logo: "/arbitrum-arb-logo.png" },
+  "FTM": { logo: "/fantom-ftm-logo.png" },
+  "BASE": { logo: "/base-logo.png" },
+  "USDC": { logo: "/usd-coin-usdc-logo.png" },
+  "USDT": { logo: "/tether-usdt-logo.png" },
+  "DAI": { logo: "/dai-dai-logo.png" },
+  "WETH": { logo: "/icons/weth.svg" },
+  "SEPOLIAETH": { logo: "/icons/eth.svg" },  // Use ETH icon for Sepolia ETH
 }
 
 // CoinGecko symbol -> id map for quick lookups
@@ -73,10 +81,10 @@ const COINGECKO_SYMBOL_MAP = {
   ETH: 'ethereum',
   SEPOLIAETH: 'ethereum',
   ARB: 'arbitrum',
-  OP: 'optimism-ethereum',
-  BASE: 'base-protocol',
-  MATIC: 'matic-network',
-  POL: 'matic-network',  // Polygon token
+  OP: 'optimism',  // Updated ID
+  BASE: 'base',    // Updated ID
+  MATIC: 'polygon',
+  POL: 'polygon',  // Polygon token
   BNB: 'binancecoin',
   AVAX: 'avalanche-2',
   FTM: 'fantom',
@@ -128,9 +136,9 @@ export async function GET(request) {
 
     const headers = {
       'accept': 'application/json',
-      'X-API-Key': MORALIS_API_KEY
-    }
-
+      'X-API-Key': MORALIS_API_KEY.trim()
+    };
+    
     let allAssets = [];
     let currentTotalUSD = 0;
     let totalValue24hAgo = 0;
@@ -179,7 +187,6 @@ export async function GET(request) {
       { chainId: '0xa', symbol: 'OP' },
       { chainId: '0xa4b1', symbol: 'ARB' },
       { chainId: '0x2105', symbol: 'BASE' },
-      { chainId: '0xaa36a7', symbol: 'SEPOLIAETH' }
     ];
 
     for (const { chainId, symbol } of nativeTokens) {
@@ -207,6 +214,10 @@ export async function GET(request) {
         token_address = moralisAsset.token_address || moralisAsset.contract_address || null;
       }
       const visuals = ASSET_VISUALS_SYMBOLS[symbol] || { logo: symbol.charAt(0) || 'A' };
+      let iconUrl = visuals.logo;
+      if (typeof iconUrl !== 'string' || !iconUrl.startsWith('/')) {
+        iconUrl = '/fallback-crypto-icon.png';
+      }
       allAssets.push({
         symbol,
         name,
@@ -215,6 +226,7 @@ export async function GET(request) {
         totalValue: 0,
         change: '0.00%',
         logo: visuals.logo,
+        iconUrl,
         chain_name: CHAIN_ID_TO_NAME[chainId] || chainId,
         chain_id: chainId,
         token_address
@@ -268,7 +280,10 @@ export async function GET(request) {
             }
           );
           priceData = cgRes.data || {};
-
+          // Debug log for polygon (MATIC)
+          if (priceData['polygon']) {
+            console.log('CoinGecko price for polygon (MATIC):', priceData['polygon']);
+          }
           // Update cache
           priceCache.symbols.set(ids, priceData);
           priceCache.lastUpdate = Date.now();
@@ -284,15 +299,13 @@ export async function GET(request) {
       }
 
       for (const asset of allAssets) {
-        if ((!asset.price || asset.price === 0) && asset.symbol) {
-          const id = COINGECKO_SYMBOL_MAP[asset.symbol]
-          if (id && priceData[id]) {
-            const p = priceData[id].usd || 0
-            const ch = typeof priceData[id].usd_24h_change === 'number' ? priceData[id].usd_24h_change : 0
-            asset.price = p
-            asset.totalValue = (asset.balance || 0) * p
-            asset.change = `${ch > 0 ? '+' : ''}${ch.toFixed(2)}%`
-          }
+        const id = COINGECKO_SYMBOL_MAP[asset.symbol]
+        if (id && priceData[id]) {
+          const p = priceData[id].usd || 0
+          const ch = typeof priceData[id].usd_24h_change === 'number' ? priceData[id].usd_24h_change : 0
+          asset.price = p
+          asset.totalValue = (asset.balance || 0) * p
+          asset.change = `${ch > 0 ? '+' : ''}${ch.toFixed(2)}%`
         }
       }
     }
