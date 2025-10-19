@@ -1,14 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-// NOTE: I'm assuming these components and libraries are installed in your Next.js environment.
-import { Card } from "../components/ui/card"
-import { Button } from "../components/ui/button"
-import { ArrowUp, ArrowDown, ArrowUpDown, ShoppingCart, TrendingUp, DollarSign } from "lucide-react"
-import Link from "next/link"
-import { useAccount, useChainId } from "wagmi"
-import axios from "axios" // Used for client-side fetching from the local API route
-import { BottomNavigation } from "../components/bottom-navigation"
+import { useState, useEffect, useCallback } from 'react'
+import { useAccount, useChainId } from 'wagmi'
+import axios from 'axios' // Used for client-side fetching from the local API route
+import { Card } from './ui/card'
+import { Button } from './ui/button'
+import { ArrowUp, ArrowDown, ArrowUpDown, ShoppingCart, TrendingUp, DollarSign } from 'lucide-react'
+import Link from 'next/link'
 
 
 // --- CONFIGURATION CONSTANTS (Client-side) ---
@@ -35,7 +33,7 @@ const CHAIN_ID_TO_NAME = {
     '0x144': 'ZKSYNC',
     '0xe708': 'LINEA',
     '0x89': 'POLYGON',
-    '0x38': 'BSC',
+    '0x38': 'BNB',
 }
 
 // ✅ Token visuals (native + stablecoins)
@@ -253,15 +251,24 @@ export function DashboardPage() {
                                     <p className="font-semibold">
                                         {asset.balance.toLocaleString("en-US", { maximumFractionDigits: 6 })} {asset.symbol}
                                     </p>
-                                    <div className="flex items-center gap-1 justify-end">
-                                        {/* Display 'No price' for zero-value assets (e.g., testnets) */}
-                                        <p className="text-sm text-muted-foreground">
-                                            {asset.totalValue > 0.01
-                                                ? `$${asset.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                : "No price available"}
-                                        </p>
-                                        {asset.totalValue > 0.01 && (
-                                            <span className={`text-xs ${asset.change.startsWith("+") ? "text-green-400" : "text-red-400"}`}>
+                                    <div className="flex items-center gap-1 justify-end flex-col md:flex-row md:items-center">
+                                        {/* Show total USD and unit price when available; otherwise show No price available */}
+                                        {asset.price && asset.price > 0 ? (
+                                            <div className="text-right">
+                                                <p className="text-sm font-medium text-foreground">
+                                                    ${Number(asset.totalValue || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    ${Number(asset.price).toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 6 })} / {asset.symbol}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">No price available</p>
+                                        )}
+
+                                        {/* Show 24h change if available */}
+                                        {asset.change && typeof asset.change === 'string' && asset.change !== '0.00%' && (
+                                            <span className={`text-xs ml-2 ${asset.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
                                                 {asset.change}
                                             </span>
                                         )}
