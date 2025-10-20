@@ -83,7 +83,7 @@ const COINGECKO_SYMBOL_MAP = {
   ARB: 'arbitrum',
   OP: 'optimism',  // Updated ID
   BASE: 'base',    // Updated ID
-  MATIC: 'polygon',
+  MATIC: 'matic-network', // Using primary MATIC id
   POL: 'polygon',  // Polygon token
   BNB: 'binancecoin',
   AVAX: 'avalanche-2',

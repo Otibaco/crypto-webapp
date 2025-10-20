@@ -210,19 +210,43 @@ export function SendPage() {
     const { switchChain } = useSwitchChain();
 
     // Local State
-    // 🎯 SOLUTION STEP 3: Use an assetId (e.g., 'ETH-1' or 'USDT-137') to track the selection
     const [selectedAssetId, setSelectedAssetId] = useState(ALL_ASSET_IDS.find(id => id.endsWith(`-${chainId}`)) || ALL_ASSET_IDS[0]);
-    const [recipient, setRecipient] = useState("")
-    const [amount, setAmount] = useState("")
-    const [errors, setErrors] = useState({})
-    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [recipient, setRecipient] = useState("");
+    const [amount, setAmount] = useState("");
+    const [errors, setErrors] = useState({});
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [txHash, setTxHash] = useState(null);
     const [isSending, setIsSending] = useState(false);
     const [simulateError, setSimulateError] = useState(null);
+    
+    // USD Price State
+    const [isUsdInput, setIsUsdInput] = useState(false);
+    const [usdAmount, setUsdAmount] = useState("");
+    const [assetPrice, setAssetPrice] = useState(0);
 
     // Dynamic configuration based on state
     // selectedAsset now contains all derived info: symbol, address, isNative, chainName, requiredChainId, etc.
     const selectedAsset = useMemo(() => getAssetConfig(selectedAssetId, chainId), [selectedAssetId, chainId]);
+
+    // Update prices and handle asset changes
+    useEffect(() => {
+        if (selectedAsset?.price) {
+            setAssetPrice(selectedAsset.price);
+            // Update USD amount when price changes
+            if (!isUsdInput && amount) {
+                setUsdAmount((Number(amount) * selectedAsset.price).toFixed(2));
+            }
+        } else {
+            setAssetPrice(0);
+            setUsdAmount("");
+        }
+    }, [selectedAsset, amount, isUsdInput]);
+
+    // Reset USD input state when changing assets
+    useEffect(() => {
+        setIsUsdInput(false);
+        setUsdAmount("");
+    }, [selectedAssetId]);
 
     // --- WAGMI: REAL-TIME BALANCE FETCHING ---
     const { data: balanceData } = useBalance({
@@ -517,6 +541,9 @@ export function SendPage() {
                     {/* Display the more descriptive label here */}
                     <DetailRow label="Asset" value={selectedAsset?.displayLabel || selectedAsset?.symbol || ''} /> 
                     <DetailRow label="Amount" value={`${amount} ${selectedAsset?.symbol || ''}`} />
+                    {selectedAsset?.price && (
+                        <DetailRow label="USD Value" value={`$${Number(usdAmount).toFixed(2)} USD`} />
+                    )}
                     <DetailRow label="Network" value={chain?.name || 'Unknown'} />
                     <DetailRow label="Est. Network Fee" value={`~0.0001 ${chain?.nativeCurrency.symbol || 'ETH'}`} />
                     <div className="pt-2 border-t border-dashed border-border flex justify-between items-center font-bold text-lg">
@@ -547,7 +574,7 @@ export function SendPage() {
             return <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing Transaction...</>;
         }
         if (Object.keys(errors).length > 0) {
-            return "Review Form Errors";
+            return "Review Send";
         }
         if (!isAssetSupportedOnChain) {
             return `Switch to ${selectedAsset?.chainName}`; // Just say Switch
@@ -562,9 +589,8 @@ export function SendPage() {
     }, [isConnected, isSimulating, simulateError, errors, isReadyToSign, isAssetSupportedOnChain, selectedAsset?.chainName]);
 
     // Determine if the main button should be disabled
-    // It's ONLY disabled if we are missing form data, simulating, or if the simulation failed.
-    // The switch button logic handles the !isAssetSupportedOnChain case.
-    const isMainButtonDisabled = !isConnected || !recipient || !selectedAsset || !amount || isSimulating || simulateError || !isReadyToSign;
+    // Only disable for critical validation errors
+    const isMainButtonDisabled = !isConnected || (!recipient && !selectedAsset) || simulateError;
 
 
     return (
@@ -732,26 +758,59 @@ export function SendPage() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="relative">
-                                <Input
-                                    id="amount"
-                                    type="number"
-                                    placeholder="0.00"
-                                    value={amount}
-                                    onChange={(e) => {
-                                        setAmount(e.target.value)
-                                        setErrors((prev) => ({ ...prev, amount: "" }))
-                                        setSimulateError(null)
-                                    }}
-                                    className={cn(
-                                        "pr-16 text-2xl h-14 transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                                        errors.amount && "border-destructive animate-shake"
-                                    )}
-                                    disabled={!isConnected || !selectedAsset}
-                                />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
-                                    {selectedAsset?.symbol || ''}
-                                </span>
+                            <div className="space-y-4">
+                                <div className="flex justify-end">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsUsdInput(!isUsdInput)}
+                                        disabled={!selectedAsset?.price}
+                                        className="text-xs"
+                                    >
+                                        {isUsdInput ? selectedAsset?.symbol : 'USD'}
+                                    </Button>
+                                </div>
+                                <div className="relative">
+                                    <Input
+                                        id="amount"
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={isUsdInput ? usdAmount : amount}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (isUsdInput) {
+                                                setUsdAmount(value);
+                                                // Convert USD to token amount
+                                                if (selectedAsset?.price) {
+                                                    setAmount((Number(value) / selectedAsset.price).toFixed(8));
+                                                }
+                                            } else {
+                                                setAmount(value);
+                                                // Convert token amount to USD
+                                                if (selectedAsset?.price) {
+                                                    setUsdAmount((Number(value) * selectedAsset.price).toFixed(2));
+                                                }
+                                            }
+                                            setErrors((prev) => ({ ...prev, amount: "" }));
+                                            setSimulateError(null);
+                                        }}
+                                        className={cn(
+                                            "pr-16 text-2xl h-14 transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
+                                            errors.amount && "border-destructive animate-shake"
+                                        )}
+                                        disabled={!isConnected || !selectedAsset}
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
+                                        {isUsdInput ? 'USD' : (selectedAsset?.symbol || '')}
+                                    </span>
+                                </div>
+                                {selectedAsset?.price && (
+                                    <div className="text-sm text-muted-foreground text-right">
+                                        ≈ {isUsdInput ? 
+                                            `${Number(amount).toFixed(8)} ${selectedAsset.symbol}` : 
+                                            `$${Number(usdAmount).toFixed(2)} USD`}
+                                    </div>
+                                )}
                             </div>
                             {errors.amount && (
                                 <div className="flex items-center gap-2 text-destructive text-sm">
