@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
-
+// Middleware to protect dashboard routes and redirect based on wallet connection status
 export function middleware(request) {
   const { pathname } = request.nextUrl
 
   const walletConnected = request.cookies.get("wallet_connected")?.value === "true"
 
-  // If user is connected and visiting / or /connect, redirect to /dashboard to avoid showing connect UI
+  // If user is connected and visiting / or /connect, redirect to /dashboard to avoid showing connect UI 
   if (walletConnected && (pathname === '/' || pathname === '/connect')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
