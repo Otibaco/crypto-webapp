@@ -25,7 +25,7 @@ const highlights = [
     excerpt: "Exploring how Ethereum became the foundation of decentralized finance.",
     category: "DeFi Trends",
     date: "Jan 10, 2025",
-    image: "/The-Rise-of-Ethereum-DeFi.jpeg",
+    image: "/The-Rise-of-Ethereum-DeFi.jpg",
   },
 ]
 
