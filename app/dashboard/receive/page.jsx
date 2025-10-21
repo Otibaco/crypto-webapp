@@ -2,7 +2,7 @@
 "use client"; // Must be client-side to use the ReceivePage component
 
 import React from 'react';
-import { ReceivePage } from "../../../components/receive-page"
+import { ReceivePage } from "../../../components/receive-page";
 import { useRouter } from 'next/navigation'; // Hook to handle navigation back
 
 // Next.js passes searchParams to the page component

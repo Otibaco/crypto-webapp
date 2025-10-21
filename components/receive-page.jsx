@@ -2,39 +2,46 @@
 "use client"
 
 import { useState } from "react"
+import { useAccount } from 'wagmi'
+import { useSearchParams } from 'next/navigation'
 // CORRECTED IMPORT: Use { QRCodeCanvas } for qrcode.react
 import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Copy, Check, AlertTriangle } from "lucide-react"
 
-// The component now accepts props: walletAddress and chainName (and optional onClose)
 export function ReceivePage({ walletAddress, chainName, onClose }) {
   const [copied, setCopied] = useState(false)
+  const { address: connectedAddress, chainId } = useAccount()
+  const searchParams = useSearchParams()
 
-  // Default to a safe, empty state if data is missing
-  const displayAddress = walletAddress || "0x0000000000000000000000000000000000000000"
-  const displayChainName = chainName || "Unknown Network"
-  const truncatedAddress = `${displayAddress.slice(0, 6)}...${displayAddress.slice(-4)}`
-
-  const copyAddress = async () => {
-    if (!displayAddress || displayAddress.startsWith("0x0000")) return;
-
-    try {
-      await navigator.clipboard.writeText(displayAddress)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error("Failed to copy address:", err)
-    }
+  // Map chainId to network name
+  const CHAIN_ID_TO_NAME = {
+    1: 'Ethereum Mainnet',
+    56: 'BNB Smart Chain',
+    137: 'Polygon',
+    43114: 'Avalanche',
+    250: 'Fantom',
+    10: 'Optimism',
+    42161: 'Arbitrum',
+    8453: 'Base',
   }
 
-  if (!walletAddress) {
+  // Support address passed via prop, query param (?address=), or connected wallet
+  const queryAddress = typeof searchParams?.get === 'function' ? searchParams.get('address') : null
+  const effectiveAddress = walletAddress || queryAddress || connectedAddress || null
+  // Use chainId from wagmi, or fallback to query param or prop
+  const queryChainId = typeof searchParams?.get === 'function' ? Number(searchParams.get('chainId')) : null
+  const effectiveChainId = chainId || queryChainId || null
+  const effectiveChainName = CHAIN_ID_TO_NAME[effectiveChainId] || 'Unknown Network'
+
+  // If we don't have an address from any source, show a helpful error
+  if (!effectiveAddress) {
     return (
       <div className="p-8 text-center space-y-4">
         <AlertTriangle className="h-10 w-10 mx-auto text-red-500" />
         <h1 className="text-xl font-bold">Error Loading Address</h1>
-        <p className="text-muted-foreground">The wallet address was not provided to the page.</p>
+        <p className="text-muted-foreground">The wallet address was not provided to the page. Connect your wallet or pass an <code>?address=</code> query parameter.</p>
         {onClose && (
           <Button onClick={onClose} className="mt-4">Go Back</Button>
         )}
@@ -42,6 +49,21 @@ export function ReceivePage({ walletAddress, chainName, onClose }) {
     )
   }
 
+  const displayAddress = effectiveAddress
+  const displayChainName = effectiveChainName
+  const truncatedAddress = `${displayAddress.slice(0, 6)}...${displayAddress.slice(-4)}`
+
+  const copyAddress = async () => {
+    if (!displayAddress || displayAddress.startsWith('0x0000')) return
+
+    try {
+      await navigator.clipboard.writeText(displayAddress)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy address:', err)
+    }
+  }
 
   return (
     <div className="p-4 space-y-6 max-w-2xl mx-auto">
@@ -105,7 +127,7 @@ export function ReceivePage({ walletAddress, chainName, onClose }) {
           <div className="space-y-1">
             <p className="text-sm font-medium text-yellow-500">Important Safety Notice</p>
             <p className="text-sm text-muted-foreground">
-              Only send assets compatible with the **{displayChainName}** network to this address. Sending other assets or using different networks
+              Only send assets compatible with the <b>{displayChainName}</b> network to this address. Sending other assets or using different networks
               may result in permanent loss of funds.
             </p>
           </div>
