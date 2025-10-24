@@ -6,6 +6,7 @@ import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { ArrowDownUp, Info, Settings, Zap, Shield, Clock } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function ExchangePage() {
   return (
@@ -109,9 +110,13 @@ export default function ExchangePage() {
                 </div>
 
                 {/* Button size adjusted */}
-                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg sm:text-xl py-4 sm:py-6 mt-4 sm:mt-6">
-                  Connect Wallet to Swap
-                </Button>
+                <Link href="/connect" >
+                  <Button size="lg" className="flex items-center gap-2 bg-[#22c55e] hover:bg-[#16a34a] text-white px-12 py-3 rounded-lg text-base font-medium transition-all duration-300"
+                  >
+                    Connect Wallet to Swap
+                  </Button>
+                </Link>
+
 
                 <p className="text-xs text-center text-muted-foreground pt-1">
                   By connecting your wallet, you agree to our Terms of Service and Privacy Policy

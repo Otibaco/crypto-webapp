@@ -1,258 +1,252 @@
 "use client"
 
-import React, { useState, useMemo, useCallback, useEffect } from "react"
-// Shadcn/UI Components (mocked or imported from assumed project structure)
-import { Card } from "./ui/card"
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
+import Link from "next/link"
+import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog"
 import { ArrowLeft, Scan, User, AlertCircle, Loader2, CheckCircle, XCircle } from "lucide-react"
-import Link from "next/link"
-import { cn } from "../lib/utils" // Utility for conditional class names
-import { truncateAddress } from '../lib/utils' // Assuming this is correctly defined
+import { cn } from "../lib/utils"
+import { truncateAddress } from '../lib/utils'
 
-// WAGMI/VIEM IMPORTS
-import {
-    parseUnits,
-    isAddress,
-    getAddress,
-    TransactionExecutionError,
-} from 'viem'
-import {
-    useAccount,
-    useBalance,
-    useSendTransaction,
-    useSimulateContract,
-    useWriteContract,
-    useWaitForTransactionReceipt,
-    // 🎯 NEW IMPORT: useSwitchChain for smooth network change
-    useSwitchChain, 
-} from 'wagmi'
+import { parseUnits, formatUnits, isAddress, getAddress, TransactionExecutionError } from 'viem'
+import { useAccount, useBalance, useSendTransaction, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'
+
 import { BottomNavigation } from "./bottom-navigation"
 
-// --- 🎯 SOLUTION STEP 1: EXPAND CONFIGURATION FOR ALL ASSETS AND CHAINS ---
-// -------------------------------------------------------------------------
-
-/**
- * Maps Chain IDs to a display name and logo for use in the dropdown.
- * Added chainId (number) for use with the wagmi useSwitchChain hook.
- * Chain IDs: 1 (Ethereum), 10 (Optimism/OP), 137 (Polygon/MATIC), 56 (BNB Chain/BNB), 42161 (Arbitrum/ARB), 8453 (Base/BASE)
- */
+// --- ASSET AND CHAIN CONFIGURATION ---
 const CHAIN_CONFIG = {
-    // Mainnets
     '1': { name: 'Ethereum', symbol: 'ETH', nativeSymbol: 'ETH', chainId: 1 },
     '10': { name: 'Optimism', symbol: 'OP', nativeSymbol: 'ETH', chainId: 10 },
     '137': { name: 'Polygon', symbol: 'MATIC', nativeSymbol: 'MATIC', chainId: 137 },
     '56': { name: 'BNB Chain', symbol: 'BNB', nativeSymbol: 'BNB', chainId: 56 },
     '42161': { name: 'Arbitrum', symbol: 'ARB', nativeSymbol: 'ETH', chainId: 42161 },
     '8453': { name: 'Base', symbol: 'BASE', nativeSymbol: 'ETH', chainId: 8453 },
-    // Testnet (for stablecoin address mocks)
-    '11155111': { name: 'Sepolia', symbol: 'SEP', nativeSymbol: 'ETH', chainId: 11155111 },
-};
+}
 
 const ERC20_ABI = [
     { type: 'function', name: 'transfer', inputs: [{ name: '_to', type: 'address' }, { name: '_value', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }], stateMutability: 'nonpayable' },
     { type: 'function', name: 'decimals', inputs: [], outputs: [{ name: '', type: 'uint8' }], stateMutability: 'view' },
-];
+]
 
-/**
- * Main asset configuration.
- */
 const ASSET_CONFIG_BASE = {
-    // --- NATIVE ASSETS (Must be sent from their respective native network) ---
-    "ETH": {
-        name: "Ethereum",
-        decimals: 18,
-        logo: "Ξ",
-        color: "text-blue-400",
-        isNative: true,
-        addresses: { '1': null }, // ETH is native to Chain ID 1 (Ethereum)
-    },
-    "ARB": {
-        name: "Arbitrum",
-        decimals: 18,
-        logo: "A",
-        color: "text-blue-500",
-        isNative: true,
-        addresses: { '42161': null }, // ARB is native gas to Chain ID 42161 (Arbitrum)
-    },
-    "OP": {
-        name: "Optimism",
-        decimals: 18,
-        logo: "🔴",
-        color: "text-red-500",
-        isNative: true,
-        addresses: { '10': null }, // OP is native gas to Chain ID 10 (Optimism)
-    },
-    "BASE": {
-        name: "Base",
-        decimals: 18,
-        logo: "B",
-        color: "text-blue-600",
-        isNative: true,
-        addresses: { '8453': null }, // BASE is native gas to Chain ID 8453 (Base)
-    },
-    "MATIC": {
-        name: "Polygon",
-        decimals: 18,
-        logo: "M",
-        color: "text-purple-500",
-        isNative: true,
-        addresses: { '137': null }, // MATIC is native gas to Chain ID 137 (Polygon)
-    },
-    "BNB": {
-        name: "BNB",
-        decimals: 18,
-        logo: "B",
-        color: "text-yellow-500",
-        isNative: true,
-        addresses: { '56': null }, // BNB is native gas to Chain ID 56 (BNB Chain)
-    },
-
-    // --- ERC-20 STABLECOINS ---
-    "USDT": {
-        name: "Tether USD",
-        decimals: 6,
-        logo: "$",
-        color: "text-green-500",
-        isNative: false,
+    ETH: { name: 'Ethereum', decimals: 18, logo: 'Ξ', color: 'text-blue-400', isNative: true, addresses: { '1': null } },
+    BNB: { name: 'BNB', decimals: 18, logo: 'B', color: 'text-yellow-500', isNative: true, addresses: { '56': null } },
+    MATIC: { name: 'Polygon', decimals: 18, logo: 'M', color: 'text-purple-500', isNative: true, addresses: { '137': null } },
+    ARB: { name: 'Arbitrum', decimals: 18, logo: 'A', color: 'text-blue-500', isNative: true, addresses: { '42161': null } },
+    OP: { name: 'Optimism', decimals: 18, logo: '🔴', color: 'text-red-500', isNative: true, addresses: { '10': null } },
+    BASE: { name: 'Base', decimals: 18, logo: 'B', color: 'text-blue-600', isNative: true, addresses: { '8453': null } },
+    USDT: {
+        name: 'Tether USD', decimals: 6, logo: '$', color: 'text-green-500', isNative: false,
         addresses: {
-            '1': '0xdAC17F958D2ee5237c95619A80b8b20e0605a96A', // Ethereum Mainnet USDT
-            '137': '0xc2132d05a96860c6d5c06BC2419f4a643d2C88D2', // Polygon Mainnet USDT
-            '56': '0x55d398326f99059fF775485246999027B3197955', // BNB Chain Mainnet USDT
+            '1': '0xdAC17F958D2ee5237c95619A80b8b20e0605a96A',
+            '137': '0xc2132d05a96860c6d5c06BC2419f4a643d2C88D2',
+            '56': '0x55d398326f99059fF775485246999027B3197955',
         }
     },
-    "USDC": {
-        name: "USD Coin",
-        decimals: 6,
-        logo: "¤",
-        color: "text-blue-500",
-        isNative: false,
+    USDC: {
+        name: 'USD Coin', decimals: 6, logo: '¤', color: 'text-blue-500', isNative: false,
         addresses: {
-            '1': '0xA0b86991c6218b36c1d19D4a2e9eb0cE3606eB48', // Ethereum Mainnet USDC
-            '137': '0x3c499c542cE5E3cc0503E878A1eE970d5dFEaF8c', // Polygon Mainnet USDC
-            '56': '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // BNB Chain Mainnet USDC
+            '1': '0xA0b86991c6218b36c1d19D4a2e9eb0cE3606eB48',
+            '137': '0x3c499c542cE5E3cc0503E878A1eE970d5dFEaF8c',
+            '56': '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
         }
-    },
-};
+    }
+}
 
-/**
- * GENERATE A UNIQUE, FLAT LIST OF ALL AVAILABLE ASSETS.
- */
-const ALL_ASSET_IDS = Object.entries(ASSET_CONFIG_BASE).flatMap(([symbol, config]) =>
-    Object.keys(config.addresses).map(chainId => `${symbol}-${chainId}`)
-);
+const ALL_ASSET_IDS = Object.entries(ASSET_CONFIG_BASE).flatMap(([symbol, config]) => Object.keys(config.addresses).map(chainId => `${symbol}-${chainId}`))
 
-/**
- * Helper to get the full asset configuration including the chain-specific address and display name.
- */
 const getAssetConfig = (assetId, currentChainId) => {
-    if (!assetId) return null;
-    const [symbol, configChainIdStr] = assetId.split('-');
-    const config = ASSET_CONFIG_BASE[symbol];
-    const assetChainConfig = CHAIN_CONFIG[configChainIdStr];
-
-    if (!config || !assetChainConfig) return null;
-
-    const isAvailableOnCurrentChain = String(currentChainId) === configChainIdStr;
-
-    const tokenAddress = config.addresses[configChainIdStr];
-
-    const displayLabel = config.isNative
-        ? symbol
-        : `${symbol} (${assetChainConfig.name})`;
-
-    // The address used for the wagmi `useBalance` or `useSimulateContract` hooks.
-    const tokenAddressOrNull = tokenAddress ? getAddress(tokenAddress) : null;
-    
-    // For native tokens, the balance hook requires no token address, but we set the tokenSymbol to its native symbol
-    // to allow a check for balance and a value in the select display.
-    const wagmiTokenAddress = config.isNative ? undefined : tokenAddressOrNull;
-
+    if (!assetId) return null
+    const [symbol, configChainIdStr] = assetId.split('-')
+    const config = ASSET_CONFIG_BASE[symbol]
+    const assetChainConfig = CHAIN_CONFIG[configChainIdStr]
+    if (!config || !assetChainConfig) return null
+    const isAvailableOnCurrentChain = String(currentChainId) === configChainIdStr
+    const tokenAddress = config.addresses[configChainIdStr]
+    const displayLabel = config.isNative ? symbol : `${symbol} (${assetChainConfig.name})`
+    const tokenAddressOrNull = tokenAddress ? getAddress(tokenAddress) : null
+    const wagmiTokenAddress = config.isNative ? undefined : tokenAddressOrNull
     return {
-        id: assetId, // Unique ID: e.g., 'USDT-137'
-        symbol: symbol, // Base Symbol: e.g., 'USDT'
+        id: assetId,
+        symbol,
         name: config.name,
         decimals: config.decimals,
         logo: config.logo,
         color: config.color,
         isNative: config.isNative,
         chainName: assetChainConfig.name,
-        // 🎯 NEW: The required chain ID number for the switchChain hook
-        requiredChainId: assetChainConfig.chainId, 
-        // The *required* token address for ERC-20 contract calls (null for native)
-        address: tokenAddressOrNull, 
-        // The token address for the wagmi useBalance hook (undefined for native)
-        wagmiTokenAddress: wagmiTokenAddress,
-        isAvailableOnCurrentChain: isAvailableOnCurrentChain,
-        displayLabel: displayLabel,
-    };
+        requiredChainId: assetChainConfig.chainId,
+        address: tokenAddressOrNull,
+        wagmiTokenAddress,
+        isAvailableOnCurrentChain,
+        displayLabel,
+    }
 }
 
+
 // Custom helper component for modal details
-const DetailRow = ({ label, value }) => (
-    <div className="flex justify-between text-sm">
+const DetailRow = ({ label, value, valueClass = "font-medium" }) => (
+    <div className="flex justify-between items-center text-sm py-2 border-b border-muted/50 last:border-b-0">
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium">{value}</span>
+        <span className={cn("text-right break-all", valueClass)}>{value}</span>
     </div>
 );
 
+// --- MAIN SEND PAGE COMPONENT ---
+// ------------------------------------
 
 export function SendPage() {
-    const { address: senderAddress, isConnected, chain } = useAccount()
-    // Use an explicit string for chainId to match the config keys
+    const { address: senderAddress, isConnected, chain, connector } = useAccount()
     const chainIdStr = String(chain?.id);
     const chainId = chain?.id;
-
-    // 🎯 NEW: Hook to allow users to switch chains easily
     const { switchChain } = useSwitchChain();
 
     // Local State
     const [selectedAssetId, setSelectedAssetId] = useState(ALL_ASSET_IDS.find(id => id.endsWith(`-${chainId}`)) || ALL_ASSET_IDS[0]);
     const [recipient, setRecipient] = useState("");
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState(""); // Token amount
+    const [amountFocused, setAmountFocused] = useState(false);
+    const [usdAmount, setUsdAmount] = useState(""); // USD amount
     const [errors, setErrors] = useState({});
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [txHash, setTxHash] = useState(null);
     const [isSending, setIsSending] = useState(false);
     const [simulateError, setSimulateError] = useState(null);
+    const [showDebugPanel, setShowDebugPanel] = useState(false);
+    const [broadcastError, setBroadcastError] = useState(null);
     
-    // USD Price State
-    const [isUsdInput, setIsUsdInput] = useState(false);
-    const [usdAmount, setUsdAmount] = useState("");
+    // Price State
+    const [isUsdInput, setIsUsdInput] = useState(false); // Tracks which input was last used
     const [assetPrice, setAssetPrice] = useState(0);
 
     // Dynamic configuration based on state
-    // selectedAsset now contains all derived info: symbol, address, isNative, chainName, requiredChainId, etc.
     const selectedAsset = useMemo(() => getAssetConfig(selectedAssetId, chainId), [selectedAssetId, chainId]);
 
-    // Update prices and handle asset changes
-    useEffect(() => {
-        if (selectedAsset?.price) {
-            setAssetPrice(selectedAsset.price);
-            // Update USD amount when price changes
-            if (!isUsdInput && amount) {
-                setUsdAmount((Number(amount) * selectedAsset.price).toFixed(2));
-            }
-        } else {
-            setAssetPrice(0);
-            setUsdAmount("");
-        }
-    }, [selectedAsset, amount, isUsdInput]);
+    // --- Price Fetching & Amount Calculation ---
 
-    // Reset USD input state when changing assets
+    // Effect 1: Fetch price (only depends on the selected asset)
     useEffect(() => {
-        setIsUsdInput(false);
+        async function fetchPrice() {
+            if (!selectedAsset?.symbol) {
+                setAssetPrice(0);
+                return;
+            }
+            
+            // Handle stablecoins directly
+            if (selectedAsset.symbol === 'USDT' || selectedAsset.symbol === 'USDC') {
+                setAssetPrice(1);
+                return;
+            }
+
+            try {
+                const cgIdMap = {
+                    'ETH': 'ethereum', 'BNB': 'binancecoin', 'MATIC': 'matic-network',
+                    'OP': 'optimism', 'ARB': 'arbitrum', 'BASE': 'base-protocol',
+                };
+                const cgId = cgIdMap[selectedAsset.symbol];
+                if (!cgId) {
+                    setAssetPrice(0); // Asset not in map
+                    return;
+                }
+
+                const url = `https://api.coingecko.com/api/v3/simple/price?ids=${cgId}&vs_currencies=usd`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('CoinGecko fetch failed');
+                const data = await res.json();
+                const price = data[cgId]?.usd || 0;
+                setAssetPrice(price);
+            } catch (err) {
+                console.error('Failed to fetch price:', err);
+                setAssetPrice(0);
+            }
+        }
+        
+        fetchPrice();
+        const interval = setInterval(fetchPrice, 30000); // Poll every 30 seconds
+        return () => clearInterval(interval);
+    }, [selectedAsset?.symbol]); // Only re-fetch when asset changes
+
+    // Effect 2: Recalculate the *other* amount when price changes
+    useEffect(() => {
+        if (assetPrice <= 0) return; // Can't calculate
+
+        if (isUsdInput) {
+            // User was typing in USD, so recalculate token amount
+            const tokenValue = (Number(usdAmount) / assetPrice);
+            setAmount(tokenValue > 0 ? tokenValue.toString() : "");
+        } else {
+            // User was typing in token, so recalculate USD amount
+            const usdValue = (Number(amount) * assetPrice).toFixed(2);
+            setUsdAmount(Number(usdValue) > 0 ? usdValue : "");
+        }
+    }, [assetPrice]); // Only runs when price updates
+
+    // Effect 3: Reset amounts when asset changes
+    useEffect(() => {
+        setAmount("");
         setUsdAmount("");
+        setIsUsdInput(false);
+        setErrors({});
+        setSimulateError(null);
     }, [selectedAssetId]);
 
+    // Handler for Token Amount input
+    const handleAmountChange = (e) => {
+        const newAmount = e.target.value;
+        if (newAmount === "") {
+            setAmount("");
+            setUsdAmount("");
+        } else if (/^[0-9]*\.?[0-9]*$/.test(newAmount)) { // Allow only numbers and one dot
+            setAmount(newAmount);
+            setIsUsdInput(false); // Flag that token amount was last touched
+            if (assetPrice > 0) {
+                const usdValue = (Number(newAmount) * assetPrice).toFixed(2);
+                setUsdAmount(usdValue);
+            } else {
+                setUsdAmount("");
+            }
+        }
+    };
+
+    const formattedAmount = useMemo(() => {
+        if (!amount) return '';
+        try {
+            const decimals = selectedAsset?.decimals ?? 6;
+            // Format with group separators but keep decimals
+            const parts = amount.split('.');
+            const intPart = Number(parts[0]).toLocaleString();
+            return parts[1] ? `${intPart}.${parts[1]}` : intPart;
+        } catch { return amount }
+    }, [amount, selectedAsset]);
+
+    // Handler for USD Amount input
+    const handleUsdAmountChange = (e) => {
+        const newUsdAmount = e.target.value;
+        if (newUsdAmount === "") {
+            setAmount("");
+            setUsdAmount("");
+        } else if (/^[0-9]*\.?[0-9]*$/.test(newUsdAmount)) { // Allow only numbers and one dot
+            setUsdAmount(newUsdAmount);
+            setIsUsdInput(true); // Flag that USD amount was last touched
+            if (assetPrice > 0) {
+                const tokenValue = (Number(newUsdAmount) / assetPrice);
+                setAmount(tokenValue.toString());
+            } else {
+                setAmount("");
+            }
+        }
+    };
+
+    // computeMaxAmount moved below after balance is fetched to avoid referencing it before initialization
+    
     // --- WAGMI: REAL-TIME BALANCE FETCHING ---
     const { data: balanceData } = useBalance({
         address: senderAddress,
-        // Use the token address for ERC-20s, or undefined for native balance
-        token: selectedAsset?.wagmiTokenAddress, 
+        token: selectedAsset?.wagmiTokenAddress,
         chainId: chainId,
         enabled: isConnected && !!senderAddress && !!selectedAsset && selectedAsset.isAvailableOnCurrentChain,
         watch: true,
@@ -261,109 +255,84 @@ export function SendPage() {
     const currentBalance = balanceData ? parseFloat(balanceData.formatted) : 0;
     const currentBalanceDisplay = balanceData ? `${currentBalance.toFixed(4)}` : "0.0000";
 
+    // Compute a safe "max" amount for native transfers (subtract a small gas buffer)
+    const computeMaxAmount = useCallback(() => {
+        if (!selectedAsset || !selectedAsset.isAvailableOnCurrentChain) return "";
+        const balance = currentBalance || 0;
+        // If token (ERC-20) just return full balance
+        if (!selectedAsset.isNative) {
+            // Use the formatted balance from wagmi to preserve precision
+            return balanceData?.formatted ?? (balance > 0 ? balance.toString() : "");
+        }
+
+        // For native assets, subtract a small gas buffer to avoid OOG when using max
+        const GAS_BUFFER = 0.001; // ~0.001 native token (safe small buffer)
+        const max = Math.max(0, balance - GAS_BUFFER);
+        // Limit decimals for UI friendliness
+        const decimals = Math.min(6, selectedAsset.decimals || 6);
+        return max > 0 ? max.toFixed(decimals).toString() : "";
+    }, [selectedAsset, currentBalance]);
+
     // --- VALIDATION & PREPARATION LOGIC ---
     const normalizedRecipient = useMemo(() => {
         if (!recipient) return null;
-        try {
-            return isAddress(recipient) ? getAddress(recipient) : null;
-        } catch {
-            return null;
-        }
+        try { return isAddress(recipient) ? getAddress(recipient) : null; } 
+        catch { return null; }
     }, [recipient])
 
     const isRecipientValid = !!normalizedRecipient;
     const isValidAmount = Number(amount) > 0 && Number(amount) <= currentBalance;
-    // Check if the selected asset is an ERC-20 token
     const isTokenSend = selectedAsset && !selectedAsset.isNative;
 
     const sendAmountBigInt = useMemo(() => {
-        if (!amount || !selectedAsset) return BigInt(0);
+        if (!amount || !selectedAsset || Number(amount) <= 0) return BigInt(0);
         try {
-            const numAmount = Number(amount);
-            if (numAmount > 0) {
-                return parseUnits(amount, selectedAsset.decimals);
-            }
-            return BigInt(0);
+            // Use toString() to avoid precision issues with large/small numbers
+            return parseUnits(amount.toString(), selectedAsset.decimals);
         } catch (e) {
             console.warn("Failed to parse amount to BigInt:", e);
             return BigInt(0);
         }
     }, [amount, selectedAsset]);
-    
-    // Check if the asset is supported on the *currently connected* chain
+
     const isAssetSupportedOnChain = selectedAsset?.isAvailableOnCurrentChain;
 
-    const isPrepareEnabled = isConnected 
-        && isRecipientValid 
-        && isValidAmount 
-        && sendAmountBigInt > BigInt(0) 
-        && !!selectedAsset 
+    const isPrepareEnabled = isConnected
+        && isRecipientValid
+        && isValidAmount
+        && sendAmountBigInt > BigInt(0)
+        && !!selectedAsset
         && isAssetSupportedOnChain; // Must be on the correct chain
 
-    // 1. Simulate NATIVE Coin Transaction
-    // Enabled only if it's a native asset AND is supported on the current chain.
-    const {
-        data: nativeSimulateData,
-        isLoading: isNativeSimulating,
-        error: nativeSimulateError,
-    } = useSimulateContract({
-        address: undefined,      
-        abi: undefined,          
-        functionName: undefined, 
-        args: undefined,         
-        to: normalizedRecipient || undefined,
-        value: sendAmountBigInt,
-        chainId: chainId,
-        query: {
-            enabled: isPrepareEnabled && !isTokenSend,
-            staleTime: 5000,
-        },
-    });
-
-    // 2. Simulate ERC-20 Token Transaction 
-    // Enabled only if it's an ERC-20 asset, has an address, AND is supported on the current chain.
-    const {
-        data: tokenSimulateData,
-        isLoading: isTokenSimulating,
-        error: tokenSimulateError,
-    } = useSimulateContract({
-        address: selectedAsset?.address || undefined, // Use the contract address
-        abi: ERC20_ABI,
-        functionName: 'transfer',
-        args: [normalizedRecipient || '0x', sendAmountBigInt],
-        chainId: chainId,
-        query: {
-            enabled: isPrepareEnabled && isTokenSend && !!selectedAsset?.address,
-            staleTime: 5000,
-        },
-    });
-
-    // Select the appropriate config and error
-    const config = isTokenSend ? tokenSimulateData : nativeSimulateData;
-    const currentSimulateError = isTokenSend ? tokenSimulateError : nativeSimulateError;
-
-    const isReadyToSign = !!config?.request;
-    const isSimulating = isTokenSend ? isTokenSimulating : isNativeSimulating;
+    // No prepare hooks are available in the installed wagmi build; construct native request at send time
+    // For ERC-20 transfers we'll call writeContractAsync directly
+    const currentPrepareError = null;
+    const preparedRequest = normalizedRecipient ? { to: normalizedRecipient, value: sendAmountBigInt, chainId } : null;
+    const isReadyToSign = isTokenSend ? (isPrepareEnabled && !!selectedAsset?.address) : (isPrepareEnabled && !!preparedRequest);
+    const isPreparing = false;
 
     // --- EFFECT: Handle Simulation Errors ---
     useEffect(() => {
-        if (isPrepareEnabled && currentSimulateError) {
-            console.error("Simulation Error:", currentSimulateError);
-            setSimulateError("Transaction simulation failed. Check for contract errors, gas, or token address support.");
-        } else if (isPrepareEnabled && !isSimulating && !isReadyToSign) {
-            // Note: This block is less likely to hit now that `isAssetSupportedOnChain` is a hard requirement for prep
-            setSimulateError("Transaction parameters invalid or missing.");
+        if (isPrepareEnabled && currentPrepareError) {
+            console.error("Prepare Error:", currentPrepareError);
+            const msg = (currentPrepareError && currentPrepareError.message) ? currentPrepareError.message : '';
+            if (msg.includes("Insufficient") || msg.includes('insufficient')) {
+                setSimulateError("Preparation failed: Insufficient funds for gas.");
+            } else {
+                setSimulateError("Cannot prepare transaction. Check network or token support.");
+            }
+        } else if (isPrepareEnabled && !isPreparing && !isReadyToSign) {
+            // If prepare didn't produce a config (no error but not ready), show generic message
+            setSimulateError("Cannot prepare transaction. Check network or token support.");
         } else {
             setSimulateError(null);
         }
-    }, [isPrepareEnabled, currentSimulateError, isSimulating, isReadyToSign]);
-
+    }, [isPrepareEnabled, currentPrepareError, isPreparing, isReadyToSign]);
 
     // --- WAGMI: TRANSACTION EXECUTION HOOKS ---
     const { sendTransactionAsync } = useSendTransaction();
     const { writeContractAsync } = useWriteContract();
 
-    // Use the useWaitForTransactionReceipt hook to get final status
     const {
         data: txReceipt,
         isLoading: isConfirming,
@@ -372,499 +341,476 @@ export function SendPage() {
     } = useWaitForTransactionReceipt({
         hash: txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' ? txHash : undefined,
         chainId: chainId,
-        query: { enabled: !!txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' },
     });
 
     // --- TRANSACTION HANDLERS ---
-
     const validateForm = useCallback(() => {
         const newErrors = {};
-
-        if (!isRecipientValid) {
-            newErrors.recipient = "Invalid Ethereum address format (0x...)";
-        }
-        if (!selectedAsset) {
-            newErrors.asset = "Invalid asset selection.";
-        } else if (!selectedAsset.isAvailableOnCurrentChain) {
-            // NOTE: The main button handles this, but we keep the error for form completeness
-            newErrors.asset = `The selected asset (${selectedAsset.symbol}) must be sent from its native network (${selectedAsset.chainName}).`;
-        } else if (isTokenSend && !selectedAsset.address) {
-            newErrors.asset = `Token contract address is missing for this chain.`;
-        }
-        if (!isValidAmount) {
-            newErrors.amount = Number(amount) > 0 ? `Amount exceeds your balance (${currentBalanceDisplay} ${selectedAsset?.symbol || ''})` : "Amount must be greater than zero";
+        if (!recipient) newErrors.recipient = "Recipient address is required";
+        else if (!isRecipientValid) newErrors.recipient = "Invalid address format";
+        
+        if (!amount || Number(amount) <= 0) newErrors.amount = "Amount must be greater than zero";
+        else if (!isValidAmount) newErrors.amount = `Insufficient balance (max: ${currentBalanceDisplay} ${selectedAsset?.symbol || ''})`;
+        
+        if (!selectedAsset) newErrors.asset = "Please select an asset";
+        
+        // 🎯 NEW: Check preparation status here
+        if (isPrepareEnabled && !isReadyToSign && !isPreparing) {
+            // If all inputs seem valid but simulation isn't ready, show a general error
+            setSimulateError("Cannot prepare transaction. Check network or token support.");
+        } else if (simulateError) {
+            // If simulation *did* run and failed, that error is already set.
+            // We just need to stop the modal.
         }
 
         setErrors(newErrors);
+        
+        // Fail validation if there are any input errors OR a simulation error
+        return Object.keys(newErrors).length === 0 && !simulateError && isReadyToSign;
 
-        return Object.keys(newErrors).length === 0 && !simulateError && isReadyToSign && isAssetSupportedOnChain;
-    }, [isRecipientValid, selectedAsset, isTokenSend, isValidAmount, amount, currentBalanceDisplay, simulateError, isReadyToSign, isAssetSupportedOnChain]);
+    }, [
+        recipient, isRecipientValid, 
+        amount, isValidAmount, 
+        currentBalanceDisplay, selectedAsset, 
+        isPrepareEnabled, isReadyToSign, isPreparing, simulateError
+    ]);
 
-
+    // 🎯 THIS FUNCTION NOW RUNS VALIDATION ON CLICK
     const handlePreviewTransaction = () => {
-        if (validateForm() && isReadyToSign) {
-            setTxHash(null);
-            setIsSending(false);
+        // validateForm() will set errors in state
+        // and only return true if everything is valid.
+        if (validateForm()) {
             setShowConfirmModal(true);
-        } else {
-            // Re-validate to display up-to-date errors
-            validateForm();
         }
     };
 
     const handleCompleteTransaction = async () => {
-        if (!isReadyToSign || !config?.request) return;
+        if (!isReadyToSign) return;
 
         setIsSending(true);
-        setTxHash(null);
+        setTxHash(null); // Clear previous hash
 
         try {
             let data;
-            
             if (isTokenSend) {
-                // ERC-20: Use writeContractAsync
-                data = await writeContractAsync({ ...config.request });
+                // Use wagmi writeContractAsync and include the account so the wallet sees "from"
+                data = await writeContractAsync({
+                    address: selectedAsset?.address,
+                    abi: ERC20_ABI,
+                    functionName: 'transfer',
+                    args: [normalizedRecipient, sendAmountBigInt],
+                    account: senderAddress,
+                });
             } else {
-                // Native: Use sendTransactionAsync
-                data = await sendTransactionAsync({ ...config.request });
+                // Native transfer via wagmi sendTransactionAsync; include account so provider shows Review correctly
+                data = await sendTransactionAsync({
+                    to: normalizedRecipient,
+                    value: sendAmountBigInt,
+                    account: senderAddress,
+                });
             }
-
-            if (data?.hash) {
-                setTxHash(data.hash);
-            }
-
+            // normalize txHash depending on response shape
+            if (data?.hash) setTxHash(data.hash);
+            else if (typeof data === 'string') setTxHash(data);
+            else if (data?.transactionHash) setTxHash(data.transactionHash);
+            // we've broadcasted the tx, stop the "awaiting signature" spinner
+            setIsSending(false);
         } catch (e) {
             console.error("Transaction broadcast failed or rejected:", e);
             setIsSending(false);
+            // Save a trimmed error for UI/debugging
+            try {
+                // Some error objects contain circular references
+                const errJson = JSON.stringify({ message: e?.message, name: e?.name, code: e?.code, data: e?.data || e?.reason || null }, null, 2);
+                setBroadcastError(errJson);
+            } catch (_) {
+                setBroadcastError(String(e));
+            }
 
             if (e instanceof TransactionExecutionError && e.message.includes('User rejected the request')) {
                 setTxHash('REJECTED');
             } else {
                 setTxHash('BROADCAST_FAILED');
             }
-
         }
     };
-    
-    // 🎯 NEW: Handler to switch the network
+
     const handleSwitchChain = () => {
         if (selectedAsset?.requiredChainId && switchChain) {
             switchChain({ chainId: selectedAsset.requiredChainId });
         }
     };
     
-
-    // --- MODAL RENDER LOGIC (No changes needed here) ---
-
+    // --- MODAL CONTENT RENDERER ---
+    
     const getModalContent = () => {
         const explorerUrl = txHash && txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' ? `${chain?.blockExplorers?.default.url}/tx/${txHash}` : null;
 
-        // 1. Final Status (Confirmed/Failed/Rejected/Broadcast Failed)
-        if (txHash) {
-            const isSuccess = isConfirmed && txReceipt?.status === 'success';
-            const isReverted = isConfirmed && txReceipt?.status === 'reverted';
-            const isFinalFailure = isFailed || isReverted || txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED';
-            const isAwaitingConfirmation = txHash !== 'REJECTED' && txHash !== 'BROADCAST_FAILED' && (isSending || isConfirming || (!isFinalFailure && !isSuccess));
-
-
-            // Awaiting Confirmation/Signature
-            if (isAwaitingConfirmation) {
-                const statusText = isConfirming ? "Confirming on blockchain..." : "Awaiting wallet signature...";
-
-                return (
-                    <div className="text-center p-6 space-y-4">
-                        <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
-                        <h2 className="text-xl font-bold">{statusText}</h2>
-                        <p className="text-sm text-muted-foreground">
-                            {txHash ? `Hash: ${truncateAddress(txHash)}` : "Please check your wallet to sign the transaction."}
-                        </p>
-                        {explorerUrl && txHash && (
-                            <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
-                                View on {chain?.blockExplorers?.default.name || 'Explorer'}
-                            </a>
-                        )}
-                        <Button onClick={() => setShowConfirmModal(false)} variant="secondary" disabled={isConfirming} className="w-full mt-4">
-                            {txHash ? "Close Status" : "Cancel"}
-                        </Button>
-                    </div>
-                );
-            }
-
-            // Explicit Failures (User Rejected or Broadcast Failed)
-            if (txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED') {
-                const title = txHash === 'REJECTED' ? "Transaction Rejected" : "Broadcast Failed";
-                const message = txHash === 'REJECTED' ? "The transaction was explicitly rejected by your wallet." : "An error occurred broadcasting the transaction. Try again.";
-                return (
-                    <div className="text-center p-6 space-y-4">
-                        <XCircle className="h-16 w-16 text-red-500 mx-auto" />
-                        <h2 className="text-2xl font-bold">{title}</h2>
-                        <p className="text-muted-foreground">{message}</p>
-                        <Button onClick={() => setShowConfirmModal(false)} className="w-full mt-4">Close</Button>
-                    </div>
-                );
-            }
-
-            // Final Result (Confirmed on chain: Success/Reverted)
+        // --- Status: Sending / Confirming ---
+        if (isSending || (txHash && isConfirming)) {
+            const statusText = isConfirming ? "Confirming on blockchain..." : "Awaiting wallet signature...";
             return (
                 <div className="text-center p-6 space-y-4">
-                    {isSuccess ? (
-                        <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-                    ) : (
-                        <XCircle className="h-16 w-16 text-red-500 mx-auto" />
-                    )}
-                    <h2 className="text-2xl font-bold">{isSuccess ? "Transaction Successful! 🎉" : "Transaction Failed ❌"}</h2>
-                    <p className="text-muted-foreground">{isSuccess ? "Your funds have been sent." : isReverted ? "The transaction failed (reverted) on-chain." : "The transaction failed or reverted."}</p>
+                    <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
+                    <h2 className="text-xl font-bold">{statusText}</h2>
+                    <p className="text-sm text-muted-foreground break-all">
+                        {txHash ? `Hash: ${truncateAddress(txHash)}` : "Please check your wallet to sign the transaction."}
+                    </p>
                     {explorerUrl && (
                         <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
                             View on {chain?.blockExplorers?.default.name || 'Explorer'}
                         </a>
                     )}
-                    <Button onClick={() => {
-                        setShowConfirmModal(false);
-                        setTxHash(null);
-                        setRecipient("");
-                        setAmount("");
-                    }} className="w-full mt-4">Done</Button>
+                    <Button onClick={handleModalClose} variant="secondary" disabled={isConfirming} className="w-full mt-4">
+                        {isConfirming ? "Close" : "Cancel"}
+                    </Button>
                 </div>
             );
         }
+        
+        // --- Status: Success ---
+        if (isConfirmed && txReceipt?.status === 'success') {
+             return (
+                <div className="text-center p-6 space-y-4">
+                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
+                    <h2 className="text-xl font-bold">Transaction Successful</h2>
+                    <p className="text-sm text-muted-foreground">Your transaction has been confirmed on the blockchain.</p>
+                     {explorerUrl && (
+                        <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
+                            View on {chain?.blockExplorers?.default.name || 'Explorer'}
+                        </a>
+                    )}
+                    <Button onClick={handleModalClose} className="w-full mt-4">Done</Button>
+                </div>
+            );
+        }
+        
+        // --- Status: Failed / Rejected ---
+        const isFinalFailure = isFailed || (isConfirmed && txReceipt?.status === 'reverted') || txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED';
+        if (isFinalFailure) {
+            let title = "Transaction Failed";
+            let message = "An unknown error occurred.";
+            if (txHash === 'REJECTED') {
+                title = "Transaction Rejected";
+                message = "You rejected the transaction in your wallet.";
+            } else if (txHash === 'BROADCAST_FAILED') {
+                title = "Broadcast Failed";
+                message = "The transaction failed to broadcast. Please try again.";
+            } else if (isConfirmed && txReceipt?.status === 'reverted') {
+                title = "Transaction Reverted";
+                message = "The transaction was reverted by the blockchain. This can be due to an error in the contract or insufficient gas.";
+            }
 
-        // 2. Initial Confirmation Screen
+             return (
+                <div className="text-center p-6 space-y-4">
+                    <XCircle className="h-12 w-12 text-destructive mx-auto" />
+                    <h2 className="text-xl font-bold">{title}</h2>
+                    <p className="text-sm text-muted-foreground">{message}</p>
+                    {txHash === 'BROADCAST_FAILED' && broadcastError && (
+                        <div className="mt-2 text-xs text-left p-2 bg-muted/10 rounded max-h-32 overflow-auto">
+                            <strong className="block">Error details:</strong>
+                            <pre className="whitespace-pre-wrap text-[12px]">{broadcastError}</pre>
+                        </div>
+                    )}
+                     {explorerUrl && (
+                        <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block text-sm">
+                            View on {chain?.blockExplorers?.default.name || 'Explorer'}
+                        </a>
+                    )}
+                    <Button onClick={handleModalClose} variant="secondary" className="w-full mt-4">Close</Button>
+                </div>
+            );
+        }
+        
+        // --- Default: Review Screen ---
         return (
             <>
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold text-center">Confirm Transaction</DialogTitle>
-                    <DialogDescription className="text-center text-sm">Review the details before sending.</DialogDescription>
+                    <DialogTitle>Review Transaction</DialogTitle>
+                    <DialogDescription>
+                        Please review the details below before sending.
+                    </DialogDescription>
                 </DialogHeader>
-                <div className="p-4 space-y-4">
+                <div className="space-y-4 py-4">
+                    <DetailRow label="You are sending" value={`${amount} ${selectedAsset?.symbol || ''}`} valueClass="font-bold text-lg" />
+                    <DetailRow label="USD Value" value={`~ $${usdAmount}`} />
                     <DetailRow label="Recipient" value={truncateAddress(recipient)} />
-                    {/* Display the more descriptive label here */}
-                    <DetailRow label="Asset" value={selectedAsset?.displayLabel || selectedAsset?.symbol || ''} /> 
-                    <DetailRow label="Amount" value={`${amount} ${selectedAsset?.symbol || ''}`} />
-                    {selectedAsset?.price && (
-                        <DetailRow label="USD Value" value={`$${Number(usdAmount).toFixed(2)} USD`} />
-                    )}
-                    <DetailRow label="Network" value={chain?.name || 'Unknown'} />
-                    <DetailRow label="Est. Network Fee" value={`~0.0001 ${chain?.nativeCurrency.symbol || 'ETH'}`} />
-                    <div className="pt-2 border-t border-dashed border-border flex justify-between items-center font-bold text-lg">
-                        <span>Total</span>
-                        <span>{amount} {selectedAsset?.symbol || ''}</span>
-                    </div>
+                    <DetailRow label="Network" value={selectedAsset?.chainName || 'Unknown'} />
                 </div>
-                <DialogFooter className="flex flex-col sm:flex-col gap-2 pt-4">
-                    <Button
-                        onClick={handleCompleteTransaction}
-                        disabled={!isReadyToSign || isSending}
-                        className="w-full h-12 bg-primary hover:bg-primary/90 transition-colors"
-                    >
-                        {isSending ? "Awaiting Signature..." : (isReadyToSign ? "Confirm and Send" : "Preparation Error")}
-                    </Button>
-                    <Button onClick={() => setShowConfirmModal(false)} variant="outline" className="w-full h-12">
-                        Cancel
+                <DialogFooter>
+                    <Button onClick={handleModalClose} variant="outline">Cancel</Button>
+                    <Button onClick={handleCompleteTransaction}>
+                        Send
                     </Button>
                 </DialogFooter>
             </>
         );
-    };
+    }
+    
+    // Helper to reset state when modal closes
+    const handleModalClose = () => {
+        setShowConfirmModal(false);
+        // Reset tx state only after a *final* status (success/fail)
+        if ((isConfirmed || isFailed || txHash === 'REJECTED' || txHash === 'BROADCAST_FAILED') && !isConfirming) {
+            setTxHash(null);
+            setIsSending(false);
+            setAmount(""); // Clear form on success
+            setUsdAmount("");
+            setRecipient("");
+        }
+    }
 
-    // Determine main button state text
-    const mainButtonText = useMemo(() => {
-        if (!isConnected) return "Connect Wallet";
-        if (isSimulating) {
-            return <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing Transaction...</>;
+    // Auto-close modal on success after short delay and reset form
+    useEffect(() => {
+        if (isConfirmed && txReceipt?.status === 'success') {
+            setIsSending(false);
+            const t = setTimeout(() => {
+                setShowConfirmModal(false);
+                setTxHash(null);
+                setAmount("");
+                setUsdAmount("");
+                setRecipient("");
+            }, 2000);
+            return () => clearTimeout(t);
         }
-        if (Object.keys(errors).length > 0) {
-            return "Review Send";
+        // If failed, ensure sending flag is cleared
+        if (isFailed) {
+            setIsSending(false);
         }
-        if (!isAssetSupportedOnChain) {
-            return `Switch to ${selectedAsset?.chainName}`; // Just say Switch
+    }, [isConfirmed, isFailed, txReceipt]);
+    
+    // --- 🎯 UPDATED ACTION BUTTON RENDERER ---
+    
+    const renderActionButton = () => {
+        // State 1: Not connected
+        if (!isConnected) {
+            return <Button disabled className="w-full">Connect Wallet to Send</Button>;
         }
-        if (simulateError) {
-            return "Simulation Failed (Check Errors)";
+        
+        // State 2: Connected, but on wrong chain
+        if (selectedAsset && !isAssetSupportedOnChain) {
+            return <Button onClick={handleSwitchChain} className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Switch to {selectedAsset.chainName}
+            </Button>;
         }
-        if (isReadyToSign) {
-            return "Preview Transaction";
-        }
-        return "Enter Details";
-    }, [isConnected, isSimulating, simulateError, errors, isReadyToSign, isAssetSupportedOnChain, selectedAsset?.chainName]);
+        
+        // State 3: Connected, on correct chain, but transaction is in progress
+    const isLoading = isPreparing || isSending || isConfirming;
+        
+        // The button is now ONLY disabled if it's already loading.
+        // All validation happens when onClick is fired.
+        const isDisabled = isLoading; 
+        
+        return (
+            <Button onClick={handlePreviewTransaction} disabled={isDisabled} className="w-full">
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPreparing ? "Checking..." : isSending ? "Check Wallet..." : isConfirming ? "Confirming..." : "Review"}
+            </Button>
+        );
+    }
 
-    // Determine if the main button should be disabled
-    // Only disable for critical validation errors
-    const isMainButtonDisabled = !isConnected || (!recipient && !selectedAsset) || simulateError;
-
+    // --- THE FULL JSX UI ---
 
     return (
-        <>
-            <div className="p-4 space-y-6 max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center gap-4 pt-4">
-                    <Link href="/">
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <h1 className="text-2xl font-bold">Send</h1>
-                </div>
+        <div className="flex flex-col h-screen">
+            <header className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background">
+                <Link href="/dashboard" passHref>
+                    <Button variant="ghost" size="icon">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </Link>
+                <h1 className="text-lg font-semibold">Send Asset</h1>
+                <Button variant="ghost" size="icon">
+                    <Scan className="h-5 w-5" />
+                </Button>
+            </header>
 
-                {!isConnected && (
-                    <Card className="text-center p-6 space-y-3 border-yellow-500 bg-yellow-900/10">
-                        <AlertCircle className="h-6 w-6 text-yellow-500 mx-auto" />
-                        <p className="font-semibold">Wallet Disconnected</p>
-                        <p className="text-sm text-muted-foreground">Please connect your wallet to use the send feature.</p>
-                    </Card>
-                )}
-                
-                {/* 🎯 Updated Alert for Mismatched Chain/Asset - Now includes a Switch Button */}
-                {isConnected && selectedAsset && !isAssetSupportedOnChain && (
-                    <Card className="p-4 space-y-4 border-red-500 bg-red-900/10">
-                        <div className="flex items-center gap-3">
-                            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                            <p className="text-sm font-semibold text-red-300">
-                                Incorrect Network: Please switch to **{selectedAsset.chainName}** to send **{selectedAsset.symbol}**.
-                            </p>
-                        </div>
-                        <Button 
-                            onClick={handleSwitchChain}
-                            className="w-full bg-red-600 hover:bg-red-700 transition-colors"
-                            disabled={!switchChain}
-                        >
-                            Switch to {selectedAsset.chainName}
-                        </Button>
-                    </Card>
-                )}
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ pointerEvents: !isConnected ? 'none' : 'auto' }}>
-                    {/* Left Column - Address and Token Selector */}
-                    <div className="space-y-6 opacity-100 transition-opacity">
-                        {/* Recipient Address */}
-                        <Card className="p-4 space-y-4">
-                            <Label htmlFor="recipient" className="text-sm font-medium">Recipient Address</Label>
-                            <div className="relative">
-                                <Input
-                                    id="recipient"
-                                    placeholder="Enter wallet address or ENS name"
-                                    value={recipient}
-                                    onChange={(e) => {
-                                        setRecipient(e.target.value)
-                                        setErrors((prev) => ({ ...prev, recipient: "" }))
-                                        setSimulateError(null)
-                                    }}
-                                    className={cn(
-                                        "pr-20 transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                                        errors.recipient && "border-destructive animate-shake",
-                                    )}
-                                    disabled={!isConnected}
-                                />
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8"><Scan className="h-4 w-4" /></Button>
-                                    <Button size="icon" variant="ghost" className="h-8 w-8"><User className="h-4 w-4" /></Button>
-                                </div>
-                            </div>
-                            {errors.recipient && (
-                                <div className="flex items-center gap-2 text-destructive text-sm">
-                                    <AlertCircle className="h-4 w-4" />{errors.recipient}
-                                </div>
-                            )}
-                        </Card>
-
-                        {/* Asset Selection */}
-                        <Card className="p-4 space-y-4">
-                            <Label className="text-sm font-medium">
-                                Select Asset <span className="text-xs text-muted-foreground">({chain?.name || 'Network'})</span>
-                            </Label>
-                            <Select
-                                value={selectedAssetId} // Use the unique ID
-                                onValueChange={(value) => {
-                                    setSelectedAssetId(value)
-                                    setErrors((prev) => ({ ...prev, asset: "" }))
-                                    setSimulateError(null)
-                                }}
-                            >
-                                <SelectTrigger className={cn(
-                                    "transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                                    errors.asset && "border-destructive",
-                                )}
-                                    disabled={!isConnected}
-                                >
-                                    <SelectValue placeholder="Choose cryptocurrency">
-                                        {selectedAsset && (
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-full bg-secondary flex items-center justify-center ${selectedAsset.color}`}>
-                                                    <span className="text-sm font-bold">{selectedAsset.logo}</span>
-                                                </div>
-                                                <div className="text-left">
-                                                    {/* Use the descriptive label for the main display */}
-                                                    <p className="font-medium">{selectedAsset.displayLabel}</p> 
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {selectedAsset.isAvailableOnCurrentChain ? `Balance: ${currentBalanceDisplay}` : `Required: ${selectedAsset.chainName}`}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </SelectValue>
+            <main className="flex-1 overflow-y-auto">
+                <div className="max-w-2xl mx-auto p-4">
+                    <Card>
+                        <CardContent className="p-6 space-y-6">
+                        {/* --- Asset Selector --- */}
+                        <div className="space-y-2">
+                            <Label htmlFor="asset">Asset</Label>
+                            <Select onValueChange={setSelectedAssetId} value={selectedAssetId}>
+                                <SelectTrigger id="asset">
+                                    <SelectValue placeholder="Select an asset" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ALL_ASSET_IDS.map(assetId => {
-                                        const asset = getAssetConfig(assetId, chainId);
-                                        if (!asset) return null;
-
+                                        const config = getAssetConfig(assetId, chainId);
+                                        if (!config) return null;
                                         return (
-                                            <SelectItem key={assetId} value={assetId}>
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-full bg-secondary flex items-center justify-center ${asset.color}`}>
-                                                        <span className="text-sm font-bold">{asset.logo}</span>
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <p className="font-medium">{asset.displayLabel}</p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {asset.isAvailableOnCurrentChain 
-                                                                ? `Current Network: ${asset.chainName}` 
-                                                                : `Switch to: ${asset.chainName}`
-                                                            }
-                                                        </p>
-                                                    </div>
+                                            <SelectItem key={config.id} value={config.id}>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn("font-bold", config.color)}>{config.logo}</span>
+                                                    <span>{config.displayLabel}</span>
                                                 </div>
                                             </SelectItem>
                                         );
                                     })}
                                 </SelectContent>
                             </Select>
-                            {errors.asset && (
-                                <div className="flex items-center gap-2 text-destructive text-sm">
-                                    <AlertCircle className="h-4 w-4" />{errors.asset}
-                                </div>
-                            )}
-                        </Card>
-                    </div>
+                        </div>
 
-                    {/* Right Column - Amount Input and Transaction Details */}
-                    <div className="space-y-6">
-                        {/* Amount Input */}
-                        <Card className="p-4 space-y-4">
-                            <div className="flex justify-between items-end">
-                                <Label htmlFor="amount" className="text-sm font-medium">Amount</Label>
-                                <div className="text-xs text-muted-foreground">
-                                    Balance: 
-                                    <span 
-                                        className="ml-1 cursor-pointer text-primary hover:text-primary/80 transition-colors"
-                                        onClick={() => {
-                                            if (currentBalance > 0 && selectedAsset?.isAvailableOnCurrentChain) {
-                                                // Set max amount, accounting for a small buffer for gas if it's the native coin
-                                                setAmount(currentBalance.toFixed(selectedAsset.decimals > 8 ? 6 : selectedAsset.decimals));
-                                            }
-                                        }}
-                                    >
-                                        {currentBalanceDisplay} {selectedAsset?.symbol || '...'}
-                                    </span>
-                                </div>
+                        {/* --- Recipient Input --- */}
+                        <div className="space-y-2">
+                            <Label htmlFor="recipient">To</Label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    id="recipient"
+                                    placeholder="Enter address or ENS name"
+                                    value={recipient}
+                                    onChange={(e) => {
+                                        setRecipient(e.target.value);
+                                        setErrors(prev => ({ ...prev, recipient: undefined })); // Clear error on change
+                                        setSimulateError(null); // Clear sim error
+                                    }}
+                                    className="pl-9"
+                                />
                             </div>
-                            <div className="space-y-4">
-                                <div className="flex justify-end">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setIsUsdInput(!isUsdInput)}
-                                        disabled={!selectedAsset?.price}
-                                        className="text-xs"
-                                    >
-                                        {isUsdInput ? selectedAsset?.symbol : 'USD'}
-                                    </Button>
-                                </div>
-                                <div className="relative">
+                            {errors.recipient && <p className="text-xs text-destructive">{errors.recipient}</p>}
+                        </div>
+
+                        {/* --- Amount Inputs --- */}
+                        <div className="p-4 border rounded-lg space-y-4 bg-muted/30">
+                            {/* Token Amount */}
+                            <div className="space-y-2">
+                                <Label htmlFor="amount">You Send</Label>
+                                <div className="flex items-center justify-between">
                                     <Input
                                         id="amount"
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={isUsdInput ? usdAmount : amount}
+                                        placeholder="0"
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={amountFocused ? amount : formattedAmount}
+                                        onFocus={() => setAmountFocused(true)}
+                                        onBlur={() => setAmountFocused(false)}
                                         onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (isUsdInput) {
-                                                setUsdAmount(value);
-                                                // Convert USD to token amount
-                                                if (selectedAsset?.price) {
-                                                    setAmount((Number(value) / selectedAsset.price).toFixed(8));
-                                                }
-                                            } else {
-                                                setAmount(value);
-                                                // Convert token amount to USD
-                                                if (selectedAsset?.price) {
-                                                    setUsdAmount((Number(value) * selectedAsset.price).toFixed(2));
-                                                }
-                                            }
-                                            setErrors((prev) => ({ ...prev, amount: "" }));
-                                            setSimulateError(null);
+                                            handleAmountChange(e);
+                                            setErrors(prev => ({ ...prev, amount: undefined })); // Clear error on change
+                                            setSimulateError(null); // Clear sim error
                                         }}
-                                        className={cn(
-                                            "pr-16 text-2xl h-14 transition-all duration-200 focus:ring-2 focus:ring-primary/50 focus:border-primary",
-                                            errors.amount && "border-destructive animate-shake"
-                                        )}
-                                        disabled={!isConnected || !selectedAsset}
+                                        className="text-2xl font-bold border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
-                                        {isUsdInput ? 'USD' : (selectedAsset?.symbol || '')}
-                                    </span>
+                                    <span className="text-xl font-medium text-muted-foreground">{selectedAsset?.symbol || ''}</span>
                                 </div>
-                                {selectedAsset?.price && (
-                                    <div className="text-sm text-muted-foreground text-right">
-                                        ≈ {isUsdInput ? 
-                                            `${Number(amount).toFixed(8)} ${selectedAsset.symbol}` : 
-                                            `$${Number(usdAmount).toFixed(2)} USD`}
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Balance: {currentBalanceDisplay}</span>
+                                    <div className="flex items-center gap-2">
+                                        {selectedAsset?.isNative ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const max = computeMaxAmount();
+                                                    setAmount(max);
+                                                    if (assetPrice > 0) setUsdAmount((Number(max) * assetPrice).toFixed(2));
+                                                    setErrors(prev => ({ ...prev, amount: undefined }));
+                                                    setSimulateError(null);
+                                                }}
+                                                className="text-primary text-xs hover:underline"
+                                            >
+                                                Max
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    // For ERC-20 tokens, set full token balance (preserve wagmi formatted value if available)
+                                                    const full = balanceData?.formatted ?? (currentBalance > 0 ? currentBalance.toString() : '');
+                                                    if (full) {
+                                                        setAmount(full.toString());
+                                                        if (assetPrice > 0) setUsdAmount((Number(full) * assetPrice).toFixed(2));
+                                                        setErrors(prev => ({ ...prev, amount: undefined }));
+                                                        setSimulateError(null);
+                                                    }
+                                                }}
+                                                className="text-primary text-xs hover:underline"
+                                            >
+                                                Max
+                                            </button>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                                {errors.amount && <p className="text-xs text-destructive">{errors.amount}</p>}
                             </div>
-                            {errors.amount && (
-                                <div className="flex items-center gap-2 text-destructive text-sm">
-                                    <AlertCircle className="h-4 w-4" />{errors.amount}
+
+                            <hr className="border-t border-border" />
+
+                            {/* USD Amount */}
+                            <div className="space-y-2">
+                                <Label htmlFor="usd-amount" className="text-muted-foreground">USD Equivalent</Label>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-lg font-medium text-muted-foreground mr-2">$</span>
+                                    <Input
+                                        id="usd-amount"
+                                        placeholder="0.00"
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={usdAmount}
+                                        onChange={(e) => {
+                                            handleUsdAmountChange(e);
+                                            setErrors(prev => ({ ...prev, amount: undefined })); // Clear error on change
+                                            setSimulateError(null); // Clear sim error
+                                        }}
+                                        className="text-lg font-bold border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none text-right"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* --- Simulation Error --- */}
+                        {simulateError && (
+                            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <p className="text-xs">{simulateError}</p>
+                            </div>
+                        )}
+
+                        {/* --- Debug Panel (hidden by default) --- */}
+                        <div className="mt-3 text-xs">
+                            <button
+                                type="button"
+                                onClick={() => setShowDebugPanel(s => !s)}
+                                className="text-muted-foreground hover:underline"
+                            >
+                                {showDebugPanel ? 'Hide debug' : 'Show debug'}
+                            </button>
+                            {showDebugPanel && (
+                                <div className="mt-2 p-3 bg-muted/20 rounded text-xs overflow-auto max-h-48">
+                                    <pre className="whitespace-pre-wrap text-[11px] leading-snug">
+{(() => {
+    try {
+        return JSON.stringify({ preparedRequest: preparedRequest || null, prepareError: currentPrepareError || null }, null, 2);
+    } catch (e) {
+        return String(preparedRequest) || 'No debug data';
+    }
+})()}
+                                    </pre>
                                 </div>
                             )}
-                        </Card>
-
-                        {/* Error/Simulation Status */}
-                        {(simulateError || (isReadyToSign && !isAssetSupportedOnChain)) && (
-                            <Card className="p-4 space-y-2 border-red-500 bg-red-900/10">
-                                <div className="flex items-start gap-2 text-red-300">
-                                    <AlertCircle className="h-5 w-5 mt-1 flex-shrink-0" />
-                                    <p className="text-sm font-medium">
-                                        {isAssetSupportedOnChain ? simulateError : `Cannot proceed: Switch to ${selectedAsset?.chainName} to send ${selectedAsset?.symbol}.`}
-                                    </p>
-                                </div>
-                            </Card>
-                        )}
-                        
-                        {/* Main Action Button */}
-                        {isAssetSupportedOnChain ? (
-                            <Button
-                                onClick={handlePreviewTransaction}
-                                disabled={isMainButtonDisabled}
-                                className="w-full h-12 text-lg transition-transform duration-150 active:scale-[0.99]"
-                            >
-                                {mainButtonText}
-                            </Button>
-                        ) : (
-                            // 🎯 Fallback button to switch chain, which replaces the send button
-                            <Button 
-                                onClick={handleSwitchChain}
-                                className="w-full h-12 text-lg transition-transform duration-150 active:scale-[0.99]"
-                                disabled={!selectedAsset?.requiredChainId || !switchChain}
-                            >
-                                Switch to {selectedAsset?.chainName || 'Correct Network'}
-                            </Button>
-                        )}
-
-                        {/* Connected Chain Info */}
-                        <div className="text-center text-sm text-muted-foreground pt-2">
-                            Connected to: <span className="font-semibold text-primary">{chain?.name || "No Network"}</span>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* Confirmation Modal */}
-            <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-                <DialogContent className="sm:max-w-[425px]">
+                        {/* --- THIS IS THE REAL, WORKING BUTTON --- */}
+                        {/* It replaces the fake one you had */}
+                        <div className="pt-4">
+                            {renderActionButton()}
+                        </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
+
+            {/* --- Confirmation & Status Modal --- */}
+            <Dialog open={showConfirmModal} onOpenChange={handleModalClose}>
+                <DialogContent>
                     {getModalContent()}
                 </DialogContent>
             </Dialog>
-        </>
+
+            <BottomNavigation />
+        </div>
     )
 }
